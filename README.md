@@ -26,9 +26,8 @@ ffmpeg({
   print: function(data) { stdout += data + "\n"; },
   printErr: function(data) { stderr += data + "\n"; },
   onExit: function(code) {
-    console.log(code);
+    console.log("Process exited with " + code);
     console.log(stdout);
-    console.log(stderr);
   },
 });
 ```
