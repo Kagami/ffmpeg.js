@@ -15,6 +15,8 @@ Note: only NPM releases contain abovementioned files.
 
 ## Usage
 
+### Sync version
+
 Print FFmpeg's version:
 
 ```js
@@ -26,13 +28,21 @@ ffmpeg({
   print: function(data) { stdout += data + "\n"; },
   printErr: function(data) { stderr += data + "\n"; },
   onExit: function(code) {
-    console.log("Process exited with " + code);
+    console.log("Process exited with code " + code);
     console.log(stdout);
   },
 });
 ```
 
 See documentation on [Module object](https://kripken.github.io/emscripten-site/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
+
+### Web Worker version
+
+*TODO*
+
+### Files
+
+*TODO*
 
 ## Version scheme
 
