@@ -15,7 +15,7 @@ Note: only NPM releases contain abovementioned files.
 
 ## Usage
 
-Print version:
+Print FFmpeg's version:
 
 ```js
 var ffmpeg = require("ffmpeg.js");
