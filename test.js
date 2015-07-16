@@ -6,8 +6,8 @@ var ffmpeg_webm = require("./ffmpeg-webm");
 describe("FFmpeg WebM", function() {
   describe("Sync", function() {
     it("should print version to stdout", function(done) {
-      var stdout = '';
-      var stderr = '';
+      var stdout = "";
+      var stderr = "";
       ffmpeg_webm({
         arguments: ["-version"],
         print: function(data) { stdout += data + "\n"; },
@@ -26,8 +26,8 @@ describe("FFmpeg WebM", function() {
 
   describe("Worker", function() {
     it("should print version to stdout", function(done) {
-      var stdout = '';
-      var stderr = '';
+      var stdout = "";
+      var stderr = "";
       var worker = new Worker("ffmpeg-worker-webm.js");
       worker.onerror = done;
       worker.onmessage = function(e) {

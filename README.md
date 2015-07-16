@@ -23,8 +23,8 @@ Print FFmpeg's version:
 
 ```js
 var ffmpeg = require("ffmpeg.js");
-var stdout = '';
-var stderr = '';
+var stdout = "";
+var stderr = "";
 ffmpeg({
   arguments: ["-version"],
   print: function(data) { stdout += data + "\n"; },
@@ -43,10 +43,9 @@ Use e.g. [browserify](https://github.com/substack/node-browserify) in case of Br
 Print FFmpeg's version:
 
 ```js
-var stdout = '';
-var stderr = '';
+var stdout = "";
+var stderr = "";
 var worker = new Worker("ffmpeg-worker-webm.js");
-worker.onerror = done;
 worker.onmessage = function(e) {
   var msg = e.data;
   switch (msg.type) {
@@ -60,16 +59,15 @@ worker.onmessage = function(e) {
     stderr += msg.data + "\n";
     break;
   case "exit":
-    expect(msg.data).to.equal(0);
-    expect(stdout).to.match(/^ffmpeg version /);
+    console.log("Process exited with code " + code);
+    console.log(stdout);
     worker.terminate();
-    done();
     break;
   }
 };
 ```
 
-This works in Browser as is, use e.g. [webworker-threads](https://github.com/audreyt/node-webworker-threads) Web Worker implementation on Node.
+This works in Browser as is, use e.g. [webworker-threads](https://github.com/audreyt/node-webworker-threads) Web Worker implementation in Node.
 
 ### Files
 
