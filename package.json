@@ -25,6 +25,7 @@
   "homepage": "https://github.com/Kagami/ffmpeg.js#readme",
   "devDependencies": {
     "chai": "*",
-    "mocha": "*"
+    "mocha": "*",
+    "webworker-threads": "^0.5.6"
   }
 }

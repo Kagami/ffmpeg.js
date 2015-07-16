@@ -63,4 +63,11 @@ cp ffmpeg ../tmp/ffmpeg-webm.bc
 
 # Compile the linked bitcode to JavaScript.
 cd ..
-emcc tmp/ffmpeg-webm.bc --pre-js pre.js --post-js post.js -o ../ffmpeg-webm.js
+emcc tmp/ffmpeg-webm.bc \
+    --pre-js pre.js \
+    --post-js post-sync.js \
+    -o ../ffmpeg-webm.js
+emcc tmp/ffmpeg-webm.bc \
+    --pre-js pre.js \
+    --post-js post-worker.js \
+    -o ../ffmpeg-worker-webm.js

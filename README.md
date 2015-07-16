@@ -15,7 +15,9 @@ Note: only NPM releases contain abovementioned files.
 
 ## Usage
 
-### Sync version
+See documentation on [Module object](https://kripken.github.io/emscripten-site/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
+
+### Sync run
 
 Print FFmpeg's version:
 
@@ -34,11 +36,40 @@ ffmpeg({
 });
 ```
 
-See documentation on [Module object](https://kripken.github.io/emscripten-site/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
+Use e.g. [browserify](https://github.com/substack/node-browserify) in case of Browser.
 
-### Web Worker version
+### Via Web Worker
 
-*TODO*
+Print FFmpeg's version:
+
+```js
+var stdout = '';
+var stderr = '';
+var worker = new Worker("ffmpeg-worker-webm.js");
+worker.onerror = done;
+worker.onmessage = function(e) {
+  var msg = e.data;
+  switch (msg.type) {
+  case "ready":
+    worker.postMessage({type: "run", arguments: ["-version"]});
+    break;
+  case "stdout":
+    stdout += msg.data + "\n";
+    break;
+  case "stderr":
+    stderr += msg.data + "\n";
+    break;
+  case "exit":
+    expect(msg.data).to.equal(0);
+    expect(stdout).to.match(/^ffmpeg version /);
+    worker.terminate();
+    done();
+    break;
+  }
+};
+```
+
+This works in Browser as is, use e.g. [webworker-threads](https://github.com/audreyt/node-webworker-threads) Web Worker implementation on Node.
 
 ### Files
 
