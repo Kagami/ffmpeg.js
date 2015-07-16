@@ -5,12 +5,11 @@
 # this, see <https://kripken.github.io/emscripten-site/>.
 # See also: <https://github.com/bgrins/videoconverter.js/tree/master/build>.
 
-# Helper routines.
 SKIP_CLEAN=0
 SKIP_LIBVPX=0
 SKIP_FFMPEG=0
 
-while [ $# -gt 0 ]; do
+while (( $# )); do
     case $1 in
     -h|--help)
         cat >&2 <<EOF
