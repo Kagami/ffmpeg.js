@@ -146,8 +146,3 @@ emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
     --pre-js pre.js \
     --post-js post-worker.js \
     -o ../ffmpeg-worker-webm.js
-
-# Cleanup.
-if (( ! SKIP_CLEAN)); then
-    ./clean.sh
-fi
