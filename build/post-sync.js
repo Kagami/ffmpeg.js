@@ -1,3 +1,4 @@
+  return __ffmpegjs_return;
 }
 
-module.exports = ffmpeg;
+module.exports = __ffmpegjs;

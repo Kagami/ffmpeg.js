@@ -3,6 +3,8 @@ var expect = require("chai").expect;
 var Worker = require("webworker-threads").Worker;
 var ffmpeg_webm = require("./ffmpeg-webm");
 
+function noop() {};
+
 describe("FFmpeg WebM", function() {
   describe("Sync", function() {
     it("should print version to stdout", function(done) {
@@ -21,6 +23,18 @@ describe("FFmpeg WebM", function() {
           done();
         },
       });
+    });
+
+    it("shouldn't return input files", function() {
+      var res = ffmpeg_webm({
+        print: noop,
+        printErr: noop,
+        MEMFS: [
+          {name: "test.mkv", data: new Uint8Array(1)},
+          {name: "222.webm", data: new Uint8Array(10)},
+        ],
+      });
+      expect(res.MEMFS).to.be.empty;
     });
   });
 
