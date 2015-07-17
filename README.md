@@ -82,9 +82,9 @@ ffmpeg.js resulting object has `MEMFS` option with the same structure and contai
 *TODO: Example here*
 
 You can also mount NODEFS and IDBFS filesystem by passing *Array* of *Object* to `mounts` option with the following keys:
-* **type** *(String)* - "NODEFS" or "IDBFS".
+* **type** *(String)* - `NODEFS` or `IDBFS`.
 * **opts** *(Object)* - Underlying file system options.
-* **mountpoint** *(Strnig)* - Mount path, must start with a slash, must not contain other slashes and also following paths are blacklisted: "/tmp", "/home", "/dev", "/work". Mount directory will be created automatically before mount.
+* **mountpoint** *(String)* - Mount path, must start with a slash, must not contain other slashes and also following paths are blacklisted: `/tmp`, `/home`, `/dev`, `/work`. Mount directory will be created automatically before mount.
 
 See documentation of [FS.mount](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#FS.mount) for more details.
 
