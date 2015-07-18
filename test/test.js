@@ -28,7 +28,7 @@ describe("FFmpeg WebM", function() {
       });
     });
 
-    it("shouldn't return input files", function() {
+    it("shouldn't return input files on MEMFS", function() {
       var res = ffmpeg_webm({
         print: noop,
         printErr: noop,
@@ -40,7 +40,9 @@ describe("FFmpeg WebM", function() {
       expect(res.MEMFS).to.be.empty;
     });
 
-    it("should show metadata of test video", function() {
+    // FIXME(Kagami): Closure minifies Node's `fs` module and this
+    // fails for `emcc --closure 1`.
+    it("should show metadata of test video on NODEFS", function() {
       var stderr = "";
       ffmpeg_webm({
         arguments: ["-i", "/data/test.webm"],
@@ -55,7 +57,7 @@ describe("FFmpeg WebM", function() {
 
     // FIXME(Kagami): Test it in worker. Now it segfaults when passing
     // Uint8Array and can't use NODEFS.
-    it("should encode test video to WebM/VP8", function() {
+    it("should encode test video to WebM/VP8 on MEMFS", function() {
       this.timeout(60000);
       var testData = new Uint8Array(fs.readFileSync("test/test.webm"));
       var res = ffmpeg_webm({
@@ -63,7 +65,8 @@ describe("FFmpeg WebM", function() {
           "-i", "test.webm",
           "-frames:v", "5", "-c:v", "libvpx",
           "-an",
-          "out.webm"],
+          "out.webm"
+        ],
         stdin: noop,
         print: noop,
         printErr: noop,

@@ -67,7 +67,7 @@ cd libvpx
 clean
 emconfigure ./configure \
     --target=generic-gnu \
-    --extra-cflags="-Wno-warn-absolute-paths" \
+    --extra-cflags="-O3 -Wno-warn-absolute-paths" \
     --disable-optimizations \
     --disable-dependency-tracking \
     --disable-multithread \
@@ -86,15 +86,17 @@ cd ..
 fi
 
 # Build ffmpeg.
-# TODO(Kagami): Add libvorbis encoder/decoder.
-# TODO(Kagami): Try to optimize build:
+# TODO(Kagami): Try to optimize build futher:
 # - pthreads is available in emscripten as experimental feature
 # - SIMD is available in Firefox Nightly
 # - Some additional optimizations may be enabled
 # - Speedup ./configure (now it does a lot of compiler tests)
-# NOTE(Kagami): Emscripten documentation recommends to always use shared
+# TODO(Kagami): Emscripten documentation recommends to always use shared
 # libraries but it's not possible in case of ffmpeg because it has
-# multiple declarations of `ff_log2_tab` symbol. See for details:
+# multiple declarations of `ff_log2_tab` symbol. GCC builds ffmpeg fine
+# though because it uses version scripts and so `ff_log2_tag` symbols
+# are not exported to the shared libraries. Seems like `emcc` ignores
+# them. We need to try to file bugreport to upstream. See also:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
@@ -107,7 +109,7 @@ cd ffmpeg
 clean
 emconfigure ./configure \
     --cc=emcc \
-    --disable-optimizations \
+    --optflags="-O3" \
     --enable-cross-compile \
     --target-os=none \
     --arch=x86_32 \
@@ -156,10 +158,14 @@ fi
 
 # Compile the linked bitcode to JavaScript.
 emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
+    -s NODE_STDOUT_FLUSH_WORKAROUND=0 \
+    -O3 --memory-init-file 0 --closure 1 \
     --pre-js pre.js \
     --post-js post-sync.js \
     -o ../ffmpeg-webm.js
 emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
+    -s NODE_STDOUT_FLUSH_WORKAROUND=0 \
+    -O3 --memory-init-file 0 --closure 1 \
     --pre-js pre.js \
     --post-js post-worker.js \
     -o ../ffmpeg-worker-webm.js
