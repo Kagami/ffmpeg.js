@@ -19,12 +19,11 @@ See documentation on [Module object](https://kripken.github.io/emscripten-site/d
 
 ### Sync run
 
-Print FFmpeg's version:
-
 ```js
 var ffmpeg = require("ffmpeg.js");
 var stdout = "";
 var stderr = "";
+// Print FFmpeg's version.
 ffmpeg({
   arguments: ["-version"],
   print: function(data) { stdout += data + "\n"; },
@@ -40,7 +39,17 @@ Use e.g. [browserify](https://github.com/substack/node-browserify) in case of Br
 
 ### Via Web Worker
 
-Print FFmpeg's version:
+`ffmpeg.js` provides wrapper for main function with Web Worker interface to offload the work to different process. Worker sends the following messages:
+* `{type: "ready"}` - Worker loaded and ready to accept commands.
+* `{type: "run"}` - Worker started the job.
+* `{type: "stdout", data: "<data>"}` - FFmpeg printed to stdout.
+* `{type: "stderr", data: "<data>"}` - FFmpeg printed to stderr.
+* `{type: "exit", data: "<code>"}` - FFmpeg exited.
+* `{type: "done", data: "<result>"}` - Job finished with some result.
+* `{type: "error", data: "<error description>"}` - Error occured.
+
+You can send the following messages to the worker:
+* `{type: "run", ...opts}` - Start new job with provided options.
 
 ```js
 var stdout = "";
@@ -67,8 +76,6 @@ worker.onmessage = function(e) {
 };
 ```
 
-*TODO: Document messages*
-
 This works in Browser as is, use e.g. [webworker-threads](https://github.com/audreyt/node-webworker-threads) Web Worker implementation in Node.
 
 ### Files
@@ -83,6 +90,7 @@ ffmpeg.js resulting object has `MEMFS` option with the same structure and contai
 var ffmpeg = require("ffmpeg.js");
 var fs = require("fs");
 var testData = new Uint8Array(fs.readFileSync("webm"));
+// Encode test video to VP8.
 var result = ffmpeg({
   MEMFS: [{name: "test.webm", data: testData}],
   arguments: ["-i", "test.webm", "-c:v", "libvpx", "-an", "out.webm"],
@@ -96,7 +104,7 @@ fs.writeFileSync(out.name, Buffer(out.data));
 You can also mount NODEFS and IDBFS filesystem by passing *Array* of *Object* to `mounts` option with the following keys:
 * **type** *(String)* - `NODEFS` or `IDBFS`.
 * **opts** *(Object)* - Underlying file system options.
-* **mountpoint** *(String)* - Mount path, must start with a slash, must not contain other slashes and also following paths are blacklisted: `/tmp`, `/home`, `/dev`, `/work`. Mount directory will be created automatically before mount.
+* **mountpoint** *(String)* - Mount path, must start with a slash, must not contain other slashes and also the following paths are blacklisted: `/tmp`, `/home`, `/dev`, `/work`. Mount directory will be created automatically before mount.
 
 See documentation of [FS.mount](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#FS.mount) for more details.
 

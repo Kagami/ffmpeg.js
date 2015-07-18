@@ -8,7 +8,7 @@ self.onmessage = function(e) {
   var opts, key, result;
   if (msg.type == "run") {
     if (__ffmpegjs_running) {
-      self.postMessage({type: "error", error: "already running"});
+      self.postMessage({type: "error", data: "already running"});
     } else {
       __ffmpegjs_running = true;
       self.postMessage({type: "run"});
@@ -39,7 +39,7 @@ self.onmessage = function(e) {
       __ffmpegjs_running = false;
     }
   } else {
-    self.postMessage({type: "error", error: "unknown command"});
+    self.postMessage({type: "error", data: "unknown command"});
   }
 };
 
