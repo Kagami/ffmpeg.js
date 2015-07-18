@@ -1,2 +1,4 @@
-.gitmodules
+/.npmignore
+/.gitmodules
 /build/
+/test/

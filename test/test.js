@@ -1,11 +1,14 @@
 // TODO(Kagami): In-browser tests with karma.
 var expect = require("chai").expect;
+var fs = require("fs");
 var Worker = require("webworker-threads").Worker;
-var ffmpeg_webm = require("./ffmpeg-webm");
+var ffmpeg_webm = require("../ffmpeg-webm");
 
 function noop() {};
 
 describe("FFmpeg WebM", function() {
+  this.timeout(10000);
+
   describe("Sync", function() {
     it("should print version to stdout", function(done) {
       var stdout = "";
@@ -35,6 +38,41 @@ describe("FFmpeg WebM", function() {
         ],
       });
       expect(res.MEMFS).to.be.empty;
+    });
+
+    it("should show metadata of test video", function() {
+      var stderr = "";
+      ffmpeg_webm({
+        arguments: ["-i", "/data/test.webm"],
+        print: noop,
+        printErr: function(data) { stderr += data + "\n"; },
+        mounts: [{type: "NODEFS", opts: {root: "test"}, mountpoint: "/data"}],
+      });
+      expect(stderr).to.match(/^Input.*matroska,webm/m);
+      expect(stderr).to.match(/^\s+Stream.*Video: vp8/m);
+      expect(stderr).to.match(/^\s+Stream.*Audio: vorbis/m);
+    });
+
+    // FIXME(Kagami): Test it in worker. Now it segfaults when passing
+    // Uint8Array and can't use NODEFS.
+    it("should encode test video to WebM/VP8", function() {
+      this.timeout(60000);
+      var testData = new Uint8Array(fs.readFileSync("test/test.webm"));
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-frames:v", "5", "-c:v", "libvpx",
+          "-an",
+          "out.webm"],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        MEMFS: [{name: "test.webm", data: testData}],
+        TOTAL_MEMORY: 100000000,
+      });
+      expect(res.MEMFS).to.have.length(1);
+      expect(res.MEMFS[0].name).to.equal("out.webm");
+      expect(res.MEMFS[0].data.length).to.be.above(0);
     });
   });
 

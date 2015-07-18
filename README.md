@@ -79,7 +79,19 @@ Empscripten has 3 types of file systems: [MEMFS](https://kripken.github.io/emscr
 
 ffmpeg.js resulting object has `MEMFS` option with the same structure and contains files which weren't passed to the input, i.e. new files created by FFmpeg.
 
-*TODO: Example here*
+```js
+var ffmpeg = require("ffmpeg.js");
+var fs = require("fs");
+var testData = new Uint8Array(fs.readFileSync("webm"));
+var result = ffmpeg({
+  MEMFS: [{name: "test.webm", data: testData}],
+  arguments: ["-i", "test.webm", "-c:v", "libvpx", "-an", "out.webm"],
+  stdin: function() {},
+});
+// Write out.webm to disk.
+var out = result.MEMFS[0];
+fs.writeFileSync(out.name, Buffer(out.data));
+```
 
 You can also mount NODEFS and IDBFS filesystem by passing *Array* of *Object* to `mounts` option with the following keys:
 * **type** *(String)* - `NODEFS` or `IDBFS`.
@@ -88,7 +100,16 @@ You can also mount NODEFS and IDBFS filesystem by passing *Array* of *Object* to
 
 See documentation of [FS.mount](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#FS.mount) for more details.
 
-*TODO: Example here*
+```js
+var ffmpeg = require("ffmpeg.js");
+ffmpeg({
+  // Mount /data inside application to the current directory.
+  mounts: [{type: "NODEFS", opts: {root: "."}, mountpoint: "/data"}],
+  arguments: ["-i", "/data/test.webm", "-c:v", "libvpx", "-an", "/data/out.webm"],
+  stdin: function() {},
+});
+// out.webm was written to the current directory.
+```
 
 ## Version scheme
 

@@ -45,6 +45,16 @@ clean() {
     fi
 }
 
+enable() {
+    set +x
+    local typ=$1
+    shift
+    for val in "$@"; do
+        echo "--enable-$typ=$val"
+    done
+    set -x
+}
+
 set -ex
 
 # Prepare to the build.
@@ -76,6 +86,7 @@ cd ..
 fi
 
 # Build ffmpeg.
+# TODO(Kagami): Add libvorbis encoder/decoder.
 # TODO(Kagami): Try to optimize build:
 # - pthreads is available in emscripten as experimental feature
 # - SIMD is available in Firefox Nightly
@@ -84,10 +95,14 @@ fi
 # NOTE(Kagami): Emscripten documentation recommends to always use shared
 # libraries but it's not possible in case of ffmpeg because it has
 # multiple declarations of `ff_log2_tab` symbol. See for details:
-# * <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
-# * <https://github.com/kripken/emscripten/issues/831>
-# * <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
+# - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
+# - <https://github.com/kripken/emscripten/issues/831>
+# - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
 if (( ! SKIP_FFMPEG )); then
+ENCODERS=( libvpx_vp8 libvpx_vp9 )
+MUXERS=( webm )
+DECODERS=( theora vorbis vp8 vp9 )
+DEMUXERS=( avi matroska ogg webm )
 cd ffmpeg
 clean
 emconfigure ./configure \
@@ -118,8 +133,10 @@ emconfigure ./configure \
     --disable-vaapi \
     --disable-vda \
     --disable-vdpau \
-    --enable-encoder=libvpx_vp8 \
-    --enable-encoder=libvpx_vp9 \
+    $(enable encoder "${ENCODERS[@]}") \
+    $(enable decoder "${DECODERS[@]}") \
+    $(enable muxer "${MUXERS[@]}") \
+    $(enable demuxer "${DEMUXERS[@]}") \
     --enable-protocol=file \
     --disable-bzlib \
     --disable-iconv \
