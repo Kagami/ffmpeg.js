@@ -162,15 +162,17 @@ cd ..
 fi
 
 # Compile the linked bitcode to JavaScript.
+# TODO(Kagami): Use `--closure 1` (saves ~90k). Blocked by:
+# <https://github.com/kripken/emscripten/issues/3230>.
 emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
     -s NODE_STDOUT_FLUSH_WORKAROUND=0 \
-    -O3 --memory-init-file 0 --closure 1 \
+    -O3 --memory-init-file 0 \
     --pre-js pre.js \
     --post-js post-sync.js \
     -o ../ffmpeg-webm.js
 emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
     -s NODE_STDOUT_FLUSH_WORKAROUND=0 \
-    -O3 --memory-init-file 0 --closure 1 \
+    -O3 --memory-init-file 0 \
     --pre-js pre.js \
     --post-js post-worker.js \
     -o ../ffmpeg-worker-webm.js

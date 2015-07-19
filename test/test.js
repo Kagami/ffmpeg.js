@@ -40,8 +40,6 @@ describe("FFmpeg WebM", function() {
       expect(res.MEMFS).to.be.empty;
     });
 
-    // FIXME(Kagami): Closure minifies Node's `fs` module and this
-    // fails for `emcc --closure 1`.
     it("should show metadata of test video on NODEFS", function() {
       var stderr = "";
       ffmpeg_webm({
