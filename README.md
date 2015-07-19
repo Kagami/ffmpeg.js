@@ -7,7 +7,7 @@ This library provides FFmpeg builds ported to JavaScript using [Emscripten proje
 ## Contents
 
 Currently available builds (additional builds may be added in future):
-* `ffmpeg-webm.js` - WebM encoding (VP8/VP9/Vorbis/Opus encoders, a lot of decoders). This is the default module.
+* `ffmpeg-webm.js` - WebM encoding (VP8/VP9/Vorbis/Opus encoders, a lot of decoders).
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
 
 Note: only NPM releases contain abovementioned files.
@@ -17,6 +17,8 @@ Note: only NPM releases contain abovementioned files.
 See documentation on [Module object](https://kripken.github.io/emscripten-site/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
 
 ### Sync run
+
+ffmpeg.js provides common module API, `ffmpeg-webm.js` is the default module.
 
 ```js
 var ffmpeg = require("ffmpeg.js");
@@ -38,11 +40,11 @@ Use e.g. [browserify](https://github.com/substack/node-browserify) in case of Br
 
 ### Via Web Worker
 
-ffmpeg.js provides wrapper for main function with Web Worker interface to offload the work to different process. Worker sends the following messages:
+ffmpeg.js also provides wrapper for main function with Web Worker interface to offload the work to different process. Worker sends the following messages:
 * `{type: "ready"}` - Worker loaded and ready to accept commands.
 * `{type: "run"}` - Worker started the job.
-* `{type: "stdout", data: "<data>"}` - FFmpeg printed to stdout.
-* `{type: "stderr", data: "<data>"}` - FFmpeg printed to stderr.
+* `{type: "stdout", data: "<line>"}` - FFmpeg printed to stdout.
+* `{type: "stderr", data: "<line>"}` - FFmpeg printed to stderr.
 * `{type: "exit", data: "<code>"}` - FFmpeg exited.
 * `{type: "done", data: "<result>"}` - Job finished with some result.
 * `{type: "error", data: "<error description>"}` - Error occured.
