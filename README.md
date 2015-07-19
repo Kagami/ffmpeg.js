@@ -7,7 +7,7 @@ This library provides FFmpeg builds ported to JavaScript using [Emscripten proje
 ## Contents
 
 Currently available builds (additional builds may be added in future):
-* `ffmpeg-webm.js` - WebM encoding (VP8/VP9/Opus encoders, a lot of decoders), default.
+* `ffmpeg-webm.js` - WebM encoding (VP8/VP9/Vorbis/Opus encoders, a lot of decoders). This is the default module.
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
 
 Note: only NPM releases contain abovementioned files.

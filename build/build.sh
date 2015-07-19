@@ -86,7 +86,7 @@ cd ..
 fi
 
 # Build ffmpeg.
-# TODO(Kagami): Try to optimize build futher:
+# TODO(Kagami): Try to optimize build further:
 # - pthreads is available in emscripten as experimental feature
 # - SIMD is available in Firefox Nightly
 # - Some additional optimizations may be enabled
@@ -102,9 +102,14 @@ fi
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
 if (( ! SKIP_FFMPEG )); then
 ENCODERS=( libvpx_vp8 libvpx_vp9 )
-MUXERS=( webm )
-DECODERS=( theora vorbis vp8 vp9 )
-DEMUXERS=( avi matroska ogg webm )
+MUXERS=( webm null )
+DECODERS=(
+    theora vp8 vp9
+    pcm_s16le flac vorbis opus
+    mpeg4 h264
+    mp3 ac3 aac
+)
+DEMUXERS=( ogg matroska webm avi mov )
 cd ffmpeg
 clean
 emconfigure ./configure \
