@@ -69,7 +69,6 @@ describe("FFmpeg WebM", function() {
         print: noop,
         printErr: noop,
         MEMFS: [{name: "test.webm", data: testData}],
-        TOTAL_MEMORY: 100000000,
       });
       expect(res.MEMFS).to.have.length(1);
       expect(res.MEMFS[0].name).to.equal("out.webm");
