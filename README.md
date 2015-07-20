@@ -125,13 +125,12 @@ ffmpeg({
 
 ## Version scheme
 
-ffmpeg.js uses the following version pattern: `major.minor.9ddd+hhhhhhh`, where:
+ffmpeg.js uses the following version pattern: `major.minor.9ddd`, where:
 * **major** - FFmpeg's major version number used in the builds.
 * **minor** - FFmpeg's minor version.
 * **ddd** - ffmpeg.js own patch version. Should not be confused with FFmpeg's patch version number.
-* **hhhhhhh** - First 7 symbols of FFmpeg's repo hash used in the builds.
 
-Example: `2.7.9005+f1a3826`
+Example: `2.7.9005`
 
 ## Credits
 
