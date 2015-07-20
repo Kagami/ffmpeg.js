@@ -4,7 +4,9 @@
 
 This library provides FFmpeg builds ported to JavaScript using [Emscripten project](https://github.com/kripken/emscripten). Builds are optimized for in-browser use: minimal size for faster loading, asm.js, performance tunings, etc. Though they work in Node as well.
 
-## Contents
+## Builds
+
+ffmpeg.js uses latest available revisions of FFmpeg and dependencies on the moment of build in almost all cases, see [build directory](https://github.com/Kagami/ffmpeg.js/tree/master/build) for the exact commits being used.
 
 Currently available builds (additional builds may be added in future):
 * `ffmpeg-webm.js` - WebM encoding (VP8/VP9/Vorbis/Opus encoders, a lot of decoders).
@@ -95,6 +97,7 @@ var testData = new Uint8Array(fs.readFileSync("test.webm"));
 var result = ffmpeg({
   MEMFS: [{name: "test.webm", data: testData}],
   arguments: ["-i", "test.webm", "-c:v", "libvpx", "-an", "out.webm"],
+  // Ignore stdin read requests.
   stdin: function() {},
 });
 // Write out.webm to disk.
