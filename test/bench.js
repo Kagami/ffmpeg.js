@@ -12,13 +12,7 @@ var testDataPath = process.argv[2] || path.join(__dirname, "test.webm");
 var testData = new Uint8Array(fs.readFileSync(testDataPath));
 
 ffmpeg({
-  arguments: [
-    "-i", testDataName,
-    "-frames:v", "5", "-c:v", "libvpx",
-    "-an",
-    "-f", "null", "-",
-  ],
-  stdin: function() {},
   MEMFS: [{name: testDataName, data: testData}],
-  TOTAL_MEMORY: 67108864,  // 64M
+  arguments: ["-i", testDataName, "-c:v", "libvpx", "-an", "-f", "null", "-"],
+  stdin: function() {},
 });

@@ -164,18 +164,18 @@ fi
 # Compile the linked bitcode to JavaScript.
 # TODO(Kagami): Use `--closure 1` (saves ~90k). Blocked by:
 # <https://github.com/kripken/emscripten/issues/3230>.
-# NOTE(Kagami): Bump heap size to 32M, default 16M is not enough even
-# for simple tests.
+# NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
+# for simple tests and 32M tends to run slower than 64M.
 emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
     -s NODE_STDOUT_FLUSH_WORKAROUND=0 \
-    -s TOTAL_MEMORY=33554432 \
+    -s TOTAL_MEMORY=67108864 \
     -O3 --memory-init-file 0 \
     --pre-js pre.js \
     --post-js post-sync.js \
     -o ../ffmpeg-webm.js
 emcc ffmpeg/ffmpeg.bc libvpx/libvpx.so \
     -s NODE_STDOUT_FLUSH_WORKAROUND=0 \
-    -s TOTAL_MEMORY=33554432 \
+    -s TOTAL_MEMORY=67108864 \
     -O3 --memory-init-file 0 \
     --pre-js pre.js \
     --post-js post-worker.js \
