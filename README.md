@@ -14,6 +14,15 @@ Currently available builds (additional builds may be added in future):
 
 Note: only NPM releases contain abovementioned files.
 
+## Version scheme
+
+ffmpeg.js uses the following version pattern: `major.minor.9ddd`, where:
+* **major** - FFmpeg's major version number used in the builds.
+* **minor** - FFmpeg's minor version.
+* **ddd** - ffmpeg.js own patch version. Should not be confused with FFmpeg's patch version number.
+
+Example: `2.7.9005`
+
 ## Usage
 
 See documentation on [Module object](https://kripken.github.io/emscripten-site/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
@@ -122,15 +131,6 @@ ffmpeg({
 });
 // out.webm was written to the current directory.
 ```
-
-## Version scheme
-
-ffmpeg.js uses the following version pattern: `major.minor.9ddd`, where:
-* **major** - FFmpeg's major version number used in the builds.
-* **minor** - FFmpeg's minor version.
-* **ddd** - ffmpeg.js own patch version. Should not be confused with FFmpeg's patch version number.
-
-Example: `2.7.9005`
 
 ## Credits
 
