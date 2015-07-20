@@ -80,7 +80,7 @@ emconfigure ./configure \
     --disable-webm-io \
     --disable-libyuv \
     --disable-vp8-decoder \
-    --disable-vp9-decoder
+    --disable-vp9
 emmake make
 cd ..
 fi
@@ -101,15 +101,15 @@ fi
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
 if (( ! SKIP_FFMPEG )); then
-ENCODERS=( libvpx_vp8 libvpx_vp9 )
+ENCODERS=( libvpx_vp8 )
 MUXERS=( webm null )
 DECODERS=(
-    theora vp8 vp9
-    pcm_s16le flac vorbis opus
+    vp8
+    vorbis opus
     mpeg4 h264
     mp3 ac3 aac
 )
-DEMUXERS=( ogg matroska webm avi mov )
+DEMUXERS=( matroska webm avi mov )
 cd ffmpeg
 clean
 emconfigure ./configure \
