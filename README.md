@@ -90,7 +90,7 @@ ffmpeg.js resulting object has `MEMFS` option with the same structure and contai
 ```js
 var ffmpeg = require("ffmpeg.js");
 var fs = require("fs");
-var testData = new Uint8Array(fs.readFileSync("webm"));
+var testData = new Uint8Array(fs.readFileSync("test.webm"));
 // Encode test video to VP8.
 var result = ffmpeg({
   MEMFS: [{name: "test.webm", data: testData}],
