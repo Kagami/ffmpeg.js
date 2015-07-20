@@ -1,10 +1,13 @@
 // TODO(Kagami): In-browser tests with karma.
 var expect = require("chai").expect;
 var fs = require("fs");
+var path = require("path");
 var Worker = require("webworker-threads").Worker;
 var ffmpeg_webm = require("../ffmpeg-webm");
 
 function noop() {};
+var testDataPath = path.join(__dirname, "test.webm");
+var testData = new Uint8Array(fs.readFileSync(testDataPath));
 
 describe("FFmpeg WebM", function() {
   this.timeout(10000);
@@ -53,17 +56,14 @@ describe("FFmpeg WebM", function() {
       expect(stderr).to.match(/^\s+Stream.*Audio: vorbis/m);
     });
 
-    // FIXME(Kagami): Test it in worker. Now it segfaults when passing
-    // Uint8Array and can't use NODEFS.
     it("should encode test video to WebM/VP8 on MEMFS", function() {
       this.timeout(60000);
-      var testData = new Uint8Array(fs.readFileSync("test/test.webm"));
       var res = ffmpeg_webm({
         arguments: [
           "-i", "test.webm",
           "-frames:v", "5", "-c:v", "libvpx",
           "-an",
-          "out.webm"
+          "out.webm",
         ],
         stdin: noop,
         print: noop,
@@ -97,6 +97,39 @@ describe("FFmpeg WebM", function() {
         case "exit":
           expect(msg.data).to.equal(0);
           expect(stdout).to.match(/^ffmpeg version /);
+          worker.terminate();
+          done();
+          break;
+        }
+      };
+    });
+
+    // FIXME(Kagami): Blocked by:
+    // <https://github.com/audreyt/node-webworker-threads/issues/60>.
+    it.skip("should encode test video to WebM/VP8 on MEMFS", function(done) {
+      this.timeout(60000);
+      var worker = new Worker("ffmpeg-worker-webm.js");
+      worker.onerror = done;
+      worker.onmessage = function(e) {
+        var msg = e.data;
+        switch (msg.type) {
+        case "ready":
+          worker.postMessage({
+            type: "run",
+            arguments: [
+              "-i", "test.webm",
+              "-frames:v", "5", "-c:v", "libvpx",
+              "-an",
+              "out.webm",
+            ],
+            MEMFS: [{name: "test.webm", data: testData}],
+          });
+          break;
+        case "done":
+          var mem = res.data.MEMFS;
+          expect(mem).to.have.length(1);
+          expect(mem[0].name).to.equal("out.webm");
+          expect(mem[0].data.length).to.be.above(0);
           worker.terminate();
           done();
           break;
