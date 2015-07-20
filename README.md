@@ -143,7 +143,9 @@ Thanks to [videoconverter.js](https://bgrins.github.io/videoconverter.js/) for i
 Library uses LGPL FFmpeg builds, see [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
 
 ```
-This software uses code of FFmpeg <http://ffmpeg.org> licensed under the LGPLv2.1 <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html> and its source can be downloaded here <https://ffmpeg.org/download.html>.
+This software uses code of FFmpeg <http://ffmpeg.org> licensed under
+the LGPLv2.1 <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>
+and its source can be downloaded here <https://ffmpeg.org/download.html>.
 ```
 
 ### libvpx
