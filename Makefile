@@ -16,7 +16,7 @@ all: ffmpeg-webm.js ffmpeg-worker-webm.js
 clean:
 	rm -f -- ffmpeg*.js
 	-cd build/libvpx && make clean
-	-cd build/ffmpeg && make clean && rm -f ffmpeg.bc
+	-cd build/ffmpeg && rm -f ffmpeg.bc && make clean
 
 build/libvpx/libvpx.so:
 	cd build/libvpx && \
