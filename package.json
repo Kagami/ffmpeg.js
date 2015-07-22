@@ -4,8 +4,6 @@
   "description": "Port of FFmpeg with Emscripten",
   "main": "ffmpeg-webm.js",
   "scripts": {
-    "build": "build/build.sh",
-    "bench": "test/bench.js",
     "test": "mocha test/test.js"
   },
   "repository": {
