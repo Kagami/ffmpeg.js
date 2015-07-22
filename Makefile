@@ -1,5 +1,5 @@
 # Compile FFmpeg and all its dependencies to JavaScript.
-# You need emsdk environment installed and activated, see
+# You need emsdk environment installed and activated, see:
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
 MUXERS = webm null
@@ -40,18 +40,13 @@ build/libvpx/libvpx.so:
 		&& \
 	emmake make
 
-# Build ffmpeg.
-# TODO(Kagami): Try to optimize build further:
-# - pthreads is available in emscripten as experimental feature
-# - SIMD is available in Firefox Nightly
-# - Some additional optimizations may be enabled
-# - Speedup ./configure (now it does a lot of compiler tests)
+# Build FFmpeg.
 # TODO(Kagami): Emscripten documentation recommends to always use shared
 # libraries but it's not possible in case of ffmpeg because it has
-# multiple declarations of `ff_log2_tab` symbol. GCC builds ffmpeg fine
+# multiple declarations of `ff_log2_tab` symbol. GCC builds FFmpeg fine
 # though because it uses version scripts and so `ff_log2_tag` symbols
 # are not exported to the shared libraries. Seems like `emcc` ignores
-# them. We need to try to file bugreport to upstream. See also:
+# them. We need to file bugreport to upstream. See also:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
@@ -106,8 +101,6 @@ build/ffmpeg/ffmpeg.bc: build/libvpx/libvpx.so
 	cp ffmpeg ffmpeg.bc
 
 # Compile bitcode to JavaScript.
-# TODO(Kagami): Use `--closure 1` (saves ~90k). Blocked by:
-# <https://github.com/kripken/emscripten/issues/3230>.
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
 
