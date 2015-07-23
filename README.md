@@ -6,8 +6,6 @@ This library provides FFmpeg builds ported to JavaScript using [Emscripten proje
 
 ## Builds
 
-ffmpeg.js uses latest available revisions of FFmpeg and dependencies on the moment of build in almost all cases, see [build directory](https://github.com/Kagami/ffmpeg.js/tree/master/build) for the exact commits being used.
-
 Currently available builds (additional builds may be added in future):
 * `ffmpeg-webm.js` - WebM encoding (VP8/Vorbis/Opus encoders, popular decoders).
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.

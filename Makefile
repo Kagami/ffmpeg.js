@@ -22,8 +22,7 @@ build/libvpx/libvpx.so:
 	cd build/libvpx && \
 	emconfigure ./configure \
 		--target=generic-gnu \
-		--extra-cflags="-O3 -Wno-warn-absolute-paths" \
-		--disable-optimizations \
+		--extra-cflags="-Wno-warn-absolute-paths" \
 		--disable-dependency-tracking \
 		--disable-multithread \
 		--disable-runtime-cpu-detect \
@@ -54,13 +53,12 @@ build/ffmpeg/ffmpeg.bc: build/libvpx/libvpx.so
 	cd build/ffmpeg && \
 	emconfigure ./configure \
 		--cc=emcc \
-		--optflags="-O3" \
 		--enable-cross-compile \
 		--target-os=none \
-		--arch=x86_32 \
-		--cpu=generic \
+		--arch=x86 \
 		--disable-runtime-cpudetect \
 		--disable-asm \
+		--disable-fast-unaligned \
 		--disable-pthreads \
 		--disable-w32threads \
 		--disable-os2threads \
@@ -108,6 +106,7 @@ ffmpeg-webm.js: build/ffmpeg/ffmpeg.bc build/libvpx/libvpx.so
 	emcc $^ \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
+		-s OUTLINING_LIMIT=20000 \
 		-O3 --memory-init-file 0 \
 		--pre-js build/pre.js \
 		--post-js build/post-sync.js \
@@ -117,6 +116,7 @@ ffmpeg-worker-webm.js: build/ffmpeg/ffmpeg.bc build/libvpx/libvpx.so
 	emcc $^ \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
+		-s OUTLINING_LIMIT=20000 \
 		-O3 --memory-init-file 0 \
 		--pre-js build/pre.js \
 		--post-js build/post-worker.js \
