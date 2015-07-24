@@ -6,3 +6,7 @@
 	path = build/libvpx
 	url = https://chromium.googlesource.com/webm/libvpx
 	ignore = dirty
+[submodule "build/opus"]
+	path = build/opus
+	url = git://git.opus-codec.org/opus.git
+	ignore = dirty

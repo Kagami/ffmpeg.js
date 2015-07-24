@@ -31,7 +31,7 @@ describe("FFmpeg WebM", function() {
       });
     });
 
-    it("shouldn't return input files on MEMFS", function() {
+    it("shouldn't return input files at MEMFS", function() {
       var res = ffmpeg_webm({
         print: noop,
         printErr: noop,
@@ -43,7 +43,7 @@ describe("FFmpeg WebM", function() {
       expect(res.MEMFS).to.be.empty;
     });
 
-    it("should show metadata of test video on NODEFS", function() {
+    it("should show metadata of test file at NODEFS", function() {
       var stderr = "";
       ffmpeg_webm({
         arguments: ["-i", "/data/test.webm"],
@@ -56,13 +56,32 @@ describe("FFmpeg WebM", function() {
       expect(stderr).to.match(/^\s+Stream.*Audio: vorbis/m);
     });
 
-    it("should encode test video to WebM/VP8 on MEMFS", function() {
+    it("should encode test file to WebM/VP8 at MEMFS", function() {
       this.timeout(60000);
       var res = ffmpeg_webm({
         arguments: [
           "-i", "test.webm",
           "-frames:v", "5", "-c:v", "libvpx",
           "-an",
+          "out.webm",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(res.MEMFS).to.have.length(1);
+      expect(res.MEMFS[0].name).to.equal("out.webm");
+      expect(res.MEMFS[0].data.length).to.be.above(0);
+    });
+
+    it("should encode test file to WebM/Opus at MEMFS", function() {
+      this.timeout(60000);
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-c:a", "libopus",
           "out.webm",
         ],
         stdin: noop,
@@ -106,7 +125,7 @@ describe("FFmpeg WebM", function() {
 
     // FIXME(Kagami): Blocked by:
     // <https://github.com/audreyt/node-webworker-threads/issues/60>.
-    it.skip("should encode test video to WebM/VP8 on MEMFS", function(done) {
+    it.skip("should encode test file to WebM/VP8 at MEMFS", function(done) {
       this.timeout(60000);
       var worker = new Worker("ffmpeg-worker-webm.js");
       worker.onerror = done;

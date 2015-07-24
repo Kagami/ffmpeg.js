@@ -4,19 +4,41 @@
 
 MUXERS = webm null
 DEMUXERS = matroska avi mov
-ENCODERS = libvpx_vp8
+ENCODERS = libvpx_vp8 libopus
 DECODERS = \
 	vp8 \
 	vorbis opus \
 	mpeg4 h264 \
 	mp3 ac3 aac
 
+CODEC_DEPS = build/opus/dist/lib/libopus.so build/libvpx/libvpx.so
+
 all: ffmpeg-webm.js ffmpeg-worker-webm.js
 
-clean:
+clean: clean-js clean-opus clean-libvpx clean-ffmpeg
+clean-js:
 	rm -f -- ffmpeg*.js
+clean-opus:
+	-cd build/opus && rm -rf dist && make clean
+clean-libvpx:
 	-cd build/libvpx && make clean
+clean-ffmpeg:
 	-cd build/ffmpeg && rm -f ffmpeg.bc && make clean
+
+build/opus/configure:
+	cd build/opus && ./autogen.sh
+
+build/opus/dist/lib/libopus.so: build/opus/configure
+	cd build/opus && \
+	emconfigure ./configure \
+		CFLAGS=-O3 \
+		--prefix="$$(pwd)/dist" \
+		--disable-static \
+		--disable-doc \
+		--disable-extra-programs \
+		&& \
+	emmake make -j8 && \
+	emmake make install
 
 build/libvpx/libvpx.so:
 	cd build/libvpx && \
@@ -37,7 +59,7 @@ build/libvpx/libvpx.so:
 		--disable-vp8-decoder \
 		--disable-vp9 \
 		&& \
-	emmake make
+	emmake make -j8
 
 # Build FFmpeg.
 # TODO(Kagami): Emscripten documentation recommends to always use shared
@@ -49,9 +71,10 @@ build/libvpx/libvpx.so:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
-build/ffmpeg/ffmpeg.bc: build/libvpx/libvpx.so
+build/ffmpeg/ffmpeg.bc: $(CODEC_DEPS)
 	cd build/ffmpeg && \
-	emconfigure ./configure \
+	make clean; \
+	EM_PKG_CONFIG_PATH=../opus/dist/lib/pkgconfig emconfigure ./configure \
 		--cc=emcc \
 		--enable-cross-compile \
 		--target-os=none \
@@ -83,8 +106,10 @@ build/ffmpeg/ffmpeg.bc: build/libvpx/libvpx.so
 		$(addprefix --enable-muxer=,$(MUXERS)) \
 		$(addprefix --enable-demuxer=,$(DEMUXERS)) \
 		--enable-protocol=file \
+		--enable-filter=aresample \
 		--disable-bzlib \
 		--disable-iconv \
+		--enable-libopus \
 		--enable-libvpx \
 		--disable-libxcb \
 		--disable-lzma \
@@ -92,17 +117,17 @@ build/ffmpeg/ffmpeg.bc: build/libvpx/libvpx.so
 		--disable-securetransport \
 		--disable-xlib \
 		--disable-zlib \
-		--extra-cflags="-I../libvpx" \
+		--extra-cflags="-Wno-warn-absolute-paths -I../libvpx" \
 		--extra-ldflags="-L../libvpx" \
 		&& \
-	emmake make && \
+	emmake make -j8 && \
 	cp ffmpeg ffmpeg.bc
 
 # Compile bitcode to JavaScript.
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
 
-ffmpeg-webm.js: build/ffmpeg/ffmpeg.bc build/libvpx/libvpx.so
+ffmpeg-webm.js: build/ffmpeg/ffmpeg.bc $(CODEC_DEPS)
 	emcc $^ \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
@@ -112,7 +137,7 @@ ffmpeg-webm.js: build/ffmpeg/ffmpeg.bc build/libvpx/libvpx.so
 		--post-js build/post-sync.js \
 		-o $@
 
-ffmpeg-worker-webm.js: build/ffmpeg/ffmpeg.bc build/libvpx/libvpx.so
+ffmpeg-worker-webm.js: build/ffmpeg/ffmpeg.bc $(CODEC_DEPS)
 	emcc $^ \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
