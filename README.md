@@ -7,7 +7,7 @@ This library provides FFmpeg builds ported to JavaScript using [Emscripten proje
 ## Builds
 
 Currently available builds (additional builds may be added in future):
-* `ffmpeg-webm.js` - WebM encoding (VP8/Vorbis/Opus encoders, popular decoders).
+* `ffmpeg-webm.js` - WebM encoding (VP8 & Opus encoders, popular decoders).
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
 
 Note: only NPM releases contain abovementioned files.
@@ -137,7 +137,6 @@ Thanks to [videoconverter.js](https://bgrins.github.io/videoconverter.js/) for i
 ## License
 
 * Library uses LGPL FFmpeg builds, see [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
-* Library includes libvorbis which is [licensed under BSD](https://git.xiph.org/?p=vorbis.git;a=blob;f=COPYING;h=8f1d18cc2b3930226088be0ce035aacd122c91bd;hb=HEAD).
 * Library includes libopus which is [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING;h=9c739c34a3a9dd39729587eb6b1f9dd4344e58f6;hb=HEAD).
 * Library includes libvpx which is [licensed under BSD](https://chromium.googlesource.com/webm/libvpx/+/master/LICENSE).
 * Own library code licensed under LGPL 2.1 or later.
