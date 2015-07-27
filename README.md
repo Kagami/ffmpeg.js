@@ -1,4 +1,4 @@
-# ffmpeg.js [![Build Status](https://travis-ci.org/Kagami/ffmpeg.js.svg?branch=master)](https://travis-ci.org/Kagami/ffmpeg.js)
+# ffmpeg.js
 
 [![NPM](https://nodei.co/npm/ffmpeg.js.png?downloads=true)](https://www.npmjs.com/package/ffmpeg.js)
 
