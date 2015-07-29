@@ -45,7 +45,9 @@ function __ffmpegjs(__ffmpegjs_opts) {
         throw new Error("Bad file name");
       }
       var fd = FS.open(file["name"], "w+");
-      FS.write(fd, file["data"], 0, file["data"].length);
+      var data = file["data"];
+      if (!(data instanceof Uint8Array)) data = new Uint8Array(data);
+      FS.write(fd, data, 0, data.length);
       FS.close(fd);
     });
   };

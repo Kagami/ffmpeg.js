@@ -93,6 +93,24 @@ describe("FFmpeg WebM", function() {
       expect(res.MEMFS[0].name).to.equal("out.webm");
       expect(res.MEMFS[0].data.length).to.be.above(0);
     });
+
+    it("should accept ArrayBuffer in MEMFS input", function() {
+      var code;
+      ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-frames:a", "1", "-c:a", "libopus",
+          "-f", "null", "-",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        onExit: function(v) {code = v},
+        MEMFS: [{name: "test.webm", data: testData.buffer}],
+      });
+      expect(code).to.equal(0);
+    });
   });
 
   describe("Worker", function() {

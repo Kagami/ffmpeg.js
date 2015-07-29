@@ -12,6 +12,10 @@ DECODERS = \
 	mp3 ac3 aac
 
 CODEC_DEPS = build/opus/dist/lib/libopus.so build/libvpx/libvpx.so
+FFMPEG_BC = build/ffmpeg/ffmpeg.bc
+PRE_JS = build/pre.js
+POST_JS_SYNC = build/post-sync.js
+POST_JS_WORKER = build/post-worker.js
 
 all: ffmpeg-webm.js ffmpeg-worker-webm.js
 
@@ -71,7 +75,7 @@ build/libvpx/libvpx.so:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
-build/ffmpeg/ffmpeg.bc: $(CODEC_DEPS)
+$(FFMPEG_BC): $(CODEC_DEPS)
 	cd build/ffmpeg && \
 	make clean; \
 	EM_PKG_CONFIG_PATH=../opus/dist/lib/pkgconfig emconfigure ./configure \
@@ -127,22 +131,28 @@ build/ffmpeg/ffmpeg.bc: $(CODEC_DEPS)
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
 
-ffmpeg-webm.js: build/ffmpeg/ffmpeg.bc $(CODEC_DEPS)
-	emcc $^ \
+ffmpeg-webm.js: $(FFMPEG_BC) \
+		$(CODEC_DEPS) \
+		$(PRE_JS) \
+		$(POST_JS_SYNC)
+	emcc $(FFMPEG_BC) $(CODEC_DEPS) \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
 		-s OUTLINING_LIMIT=20000 \
 		-O3 --memory-init-file 0 \
-		--pre-js build/pre.js \
-		--post-js build/post-sync.js \
+		--pre-js $(PRE_JS) \
+		--post-js $(POST_JS_SYNC) \
 		-o $@
 
-ffmpeg-worker-webm.js: build/ffmpeg/ffmpeg.bc $(CODEC_DEPS)
-	emcc $^ \
+ffmpeg-worker-webm.js: $(FFMPEG_BC) \
+			$(CODEC_DEPS) \
+			$(PRE_JS) \
+			$(POST_JS_WORKER)
+	emcc $(FFMPEG_BC) $(CODEC_DEPS) \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
 		-s OUTLINING_LIMIT=20000 \
 		-O3 --memory-init-file 0 \
-		--pre-js build/pre.js \
-		--post-js build/post-worker.js \
+		--pre-js $(PRE_JS) \
+		--post-js $(POST_JS_WORKER) \
 		-o $@
