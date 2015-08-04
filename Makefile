@@ -3,7 +3,7 @@
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
 MUXERS = webm null
-DEMUXERS = matroska avi mov
+DEMUXERS = matroska avi mov concat
 ENCODERS = libvpx_vp8 libopus
 DECODERS = \
 	vp8 \
