@@ -6,7 +6,7 @@ MUXERS = webm null
 DEMUXERS = matroska avi mov concat
 ENCODERS = libvpx_vp8 libopus
 DECODERS = \
-	vp8 \
+	vp8 vp9 \
 	vorbis opus \
 	mpeg4 h264 \
 	mp3 ac3 aac
