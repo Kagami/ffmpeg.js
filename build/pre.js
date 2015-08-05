@@ -67,12 +67,24 @@ function __ffmpegjs(__ffmpegjs_opts) {
     (__ffmpegjs_opts["MEMFS"] || []).forEach(function(file) {
       inFiles[file["name"]] = true;
     });
-    var files = FS.lookupPath(".").node.contents;
+    var files = FS.lookupPath("/work").node.contents;
     var outFiles = []
-    var filename;
+    var filename, data;
     for (filename in files) {
+      // NOTE(Kagami): Search for files only in working directory, one
+      // level depth. Since FFmpeg shouldn't normally create
+      // subdirectories, it should be enough.
       if (!has(inFiles, filename)) {
-        outFiles.push({"name": filename, "data": files[filename].contents});
+        data = files[filename].contents;
+        // library_memfs will use `Array` for newly created files (see
+        // settings.js, MEMFS_APPEND_TO_TYPED_ARRAYS), so convert them
+        // back to typed arrays to simplify API.
+        if (ArrayBuffer.isView(data)) {
+          if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
+        } else {
+          data = new Uint8Array(data);
+        }
+        outFiles.push({"name": filename, "data": data});
       }
     }
     __ffmpegjs_return = {"MEMFS": outFiles};

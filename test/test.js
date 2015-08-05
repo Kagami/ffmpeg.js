@@ -71,8 +71,10 @@ describe("FFmpeg WebM", function() {
         MEMFS: [{name: "test.webm", data: testData}],
       });
       expect(res.MEMFS).to.have.length(1);
-      expect(res.MEMFS[0].name).to.equal("out.webm");
-      expect(res.MEMFS[0].data.length).to.be.above(0);
+      var file = res.MEMFS[0];
+      expect(file.name).to.equal("out.webm");
+      expect(file.data.length).to.be.above(0);
+      expect(file.data).to.be.an.instanceof(Uint8Array);
     });
 
     it("should encode test file to WebM/Opus at MEMFS", function() {
@@ -90,8 +92,10 @@ describe("FFmpeg WebM", function() {
         MEMFS: [{name: "test.webm", data: testData}],
       });
       expect(res.MEMFS).to.have.length(1);
-      expect(res.MEMFS[0].name).to.equal("out.webm");
-      expect(res.MEMFS[0].data.length).to.be.above(0);
+      var file = res.MEMFS[0];
+      expect(file.name).to.equal("out.webm");
+      expect(file.data.length).to.be.above(0);
+      expect(file.data).to.be.an.instanceof(Uint8Array);
     });
 
     it("should accept ArrayBuffer in MEMFS input", function() {
