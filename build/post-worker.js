@@ -4,6 +4,20 @@
 var __ffmpegjs_running = false;
 
 self.onmessage = function(e) {
+  // This might work not so fast in case of fast printing.
+  function makeOutHandler(cb) {
+    var buf = ""
+    return function(ch, exit) {
+      if (exit && buf) return cb(buf);
+      if (ch === 10 || ch === 13) {
+        cb(buf);
+        buf = "";
+      } else {
+        buf += String.fromCharCode(ch);
+      }
+    };
+  }
+
   var msg = e.data;
   if (msg["type"] == "run") {
     if (__ffmpegjs_running) {
@@ -22,13 +36,16 @@ self.onmessage = function(e) {
         // via Web Worker message interface, set stdin to no-op. We are
         // messing with other handlers anyway.
       };
-      opts["print"] = function(data) {
-        self.postMessage({"type": "stdout", "data": data});
-      };
-      opts["printErr"] = function(data) {
-        self.postMessage({"type": "stderr", "data": data});
-      };
+      opts["stdout"] = makeOutHandler(function(line) {
+        self.postMessage({"type": "stdout", "data": line});
+      });
+      opts["stderr"] = makeOutHandler(function(line) {
+        self.postMessage({"type": "stderr", "data": line});
+      });
       opts["onExit"] = function(code) {
+        // Flush buffers.
+        opts["stdout"](0, true);
+        opts["stderr"](0, true);
         self.postMessage({"type": "exit", "data": code});
       };
       // TODO(Kagami): Should we wrap this function into try/catch in
