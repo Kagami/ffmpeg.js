@@ -22,9 +22,7 @@ describe("FFmpeg WebM", function() {
         printErr: function(data) { stderr += data + "\n"; },
         onExit: function(code) {
           expect(code).to.equal(0);
-          // emscripten emits warnings regarding `signal()` calls. It
-          // should be empty actually.
-          // expect(stderr).to.be.empty;
+          expect(stderr).to.be.empty;
           expect(stdout).to.match(/^ffmpeg version /);
           done();
         },
@@ -223,6 +221,7 @@ describe("FFmpeg WebM", function() {
           stderr += msg.data + "\n";
           break;
         case "exit":
+          expect(stderr).to.be.empty;
           expect(msg.data).to.equal(0);
           expect(stdout).to.match(/^ffmpeg version /);
           worker.terminate();
