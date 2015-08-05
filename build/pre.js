@@ -44,7 +44,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
       var data = file["data"];
       // `FS.write` accepts only `Uint8Array`, so we do conversion here
       // to simplify our API. It will work with plain `Array` too.
-      if (ArrayBuffer.isView(data)) {
+      if (ArrayBuffer["isView"](data)) {
         // Avoid unnecessary copying.
         if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
       } else {
@@ -82,7 +82,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
       // library_memfs will use `Array` for newly created files (see
       // settings.js, MEMFS_APPEND_TO_TYPED_ARRAYS), so convert them
       // back to typed arrays to simplify API.
-      if (ArrayBuffer.isView(data)) {
+      if (ArrayBuffer["isView"](data)) {
         if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
       } else {
         data = new Uint8Array(data);

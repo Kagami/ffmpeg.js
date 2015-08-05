@@ -136,6 +136,7 @@ ffmpeg-webm.js: $(FFMPEG_BC) \
 		$(PRE_JS) \
 		$(POST_JS_SYNC)
 	emcc $(FFMPEG_BC) $(CODEC_DEPS) \
+		--closure 1 \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
 		-s OUTLINING_LIMIT=20000 \
@@ -149,6 +150,7 @@ ffmpeg-worker-webm.js: $(FFMPEG_BC) \
 			$(PRE_JS) \
 			$(POST_JS_WORKER)
 	emcc $(FFMPEG_BC) $(CODEC_DEPS) \
+		--closure 1 \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
 		-s OUTLINING_LIMIT=20000 \
