@@ -3,15 +3,11 @@ function __ffmpegjs(__ffmpegjs_opts) {
   var __ffmpegjs_return;
   var Module = {};
 
-  // User options.
-  (function() {
-    var key;
-    for (key in __ffmpegjs_opts) {
-      if (key != "mounts" && key != "MEMFS") {
-        Module[key] = __ffmpegjs_opts[key];
-      }
+  Object.keys(__ffmpegjs_opts).forEach(function(key) {
+    if (key != "mounts" && key != "MEMFS") {
+      Module[key] = __ffmpegjs_opts[key];
     }
-  })();
+  });
 
   Module["preRun"] = function() {
     (__ffmpegjs_opts["mounts"] || []).forEach(function(mount) {
@@ -68,24 +64,22 @@ function __ffmpegjs(__ffmpegjs_opts) {
       inFiles[file["name"]] = true;
     });
     var files = FS.lookupPath("/work").node.contents;
-    var outFiles = []
-    var filename, data;
-    for (filename in files) {
-      // NOTE(Kagami): Search for files only in working directory, one
-      // level depth. Since FFmpeg shouldn't normally create
-      // subdirectories, it should be enough.
-      if (!has(inFiles, filename)) {
-        data = files[filename].contents;
-        // library_memfs will use `Array` for newly created files (see
-        // settings.js, MEMFS_APPEND_TO_TYPED_ARRAYS), so convert them
-        // back to typed arrays to simplify API.
-        if (ArrayBuffer.isView(data)) {
-          if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
-        } else {
-          data = new Uint8Array(data);
-        }
-        outFiles.push({"name": filename, "data": data});
+    // NOTE(Kagami): Search for files only in working directory, one
+    // level depth. Since FFmpeg shouldn't normally create
+    // subdirectories, it should be enough.
+    var outFiles = Object.keys(files).filter(function(filename) {
+      return !has(inFiles, filename);
+    }).map(function(filename) {
+      var data = files[filename].contents;
+      // library_memfs will use `Array` for newly created files (see
+      // settings.js, MEMFS_APPEND_TO_TYPED_ARRAYS), so convert them
+      // back to typed arrays to simplify API.
+      if (ArrayBuffer.isView(data)) {
+        if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
+      } else {
+        data = new Uint8Array(data);
       }
-    }
+      return {"name": filename, "data": data};
+    });
     __ffmpegjs_return = {"MEMFS": outFiles};
   };
