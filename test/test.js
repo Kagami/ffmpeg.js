@@ -33,6 +33,7 @@ describe("FFmpeg WebM", function() {
 
     it("shouldn't return input files at MEMFS", function() {
       var res = ffmpeg_webm({
+        arguments: [],
         print: noop,
         printErr: noop,
         MEMFS: [
@@ -58,6 +59,7 @@ describe("FFmpeg WebM", function() {
 
     it("should encode test file to WebM/VP8 at MEMFS", function() {
       this.timeout(60000);
+      var code;
       var res = ffmpeg_webm({
         arguments: [
           "-i", "test.webm",
@@ -68,8 +70,10 @@ describe("FFmpeg WebM", function() {
         stdin: noop,
         print: noop,
         printErr: noop,
+        onExit: function(v) {code = v},
         MEMFS: [{name: "test.webm", data: testData}],
       });
+      expect(code).to.equal(0);
       expect(res.MEMFS).to.have.length(1);
       var file = res.MEMFS[0];
       expect(file.name).to.equal("out.webm");
@@ -79,6 +83,7 @@ describe("FFmpeg WebM", function() {
 
     it("should encode test file to WebM/Opus at MEMFS", function() {
       this.timeout(60000);
+      var code;
       var res = ffmpeg_webm({
         arguments: [
           "-i", "test.webm",
@@ -89,8 +94,10 @@ describe("FFmpeg WebM", function() {
         stdin: noop,
         print: noop,
         printErr: noop,
+        onExit: function(v) {code = v},
         MEMFS: [{name: "test.webm", data: testData}],
       });
+      expect(code).to.equal(0);
       expect(res.MEMFS).to.have.length(1);
       var file = res.MEMFS[0];
       expect(file.name).to.equal("out.webm");
@@ -152,6 +159,48 @@ describe("FFmpeg WebM", function() {
         MEMFS: [{name: "test.webm", data: data}],
       });
       expect(code).to.equal(0);
+    });
+
+    it("should work with crazy output name", function() {
+      var code;
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-frames:a", "1", "-c:a", "libopus",
+          "-f", "webm", "toString",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        onExit: function(v) {code = v},
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(code).to.equal(0);
+      expect(res.MEMFS).to.have.length(1);
+      var file = res.MEMFS[0];
+      expect(file.name).to.equal("toString");
+      expect(file.data.length).to.be.above(0);
+      expect(file.data).to.be.an.instanceof(Uint8Array);
+    });
+
+    // TODO(Kagami): Not our bug - report to Emscripten.
+    it.skip("should work with other crazy output name", function() {
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-frames:a", "1", "-c:a", "libopus",
+          "-f", "webm", "__proto__",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(res.MEMFS).to.have.length(1);
+      expect(res.MEMFS[0].name).to.equal("__proto__");
+      expect(res.MEMFS[0].data.length).to.be.above(0);
     });
   });
 

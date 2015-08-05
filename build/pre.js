@@ -56,12 +56,20 @@ function __ffmpegjs(__ffmpegjs_opts) {
   };
 
   Module["postRun"] = function() {
-    function has(obj, prop) {
-      return Object.prototype.hasOwnProperty.call(obj, prop);
+    var inFiles = Object.create(null);
+    var hasProto = false;
+    function set(obj, prop) {
+      if (prop === "__proto__") {
+        hasProto = true;
+      } else {
+        inFiles[prop] = true;
+      }
     }
-    var inFiles = {};
+    function has(obj, prop) {
+      return prop === "__proto__" ? hasProto : prop in obj;
+    }
     (__ffmpegjs_opts["MEMFS"] || []).forEach(function(file) {
-      inFiles[file["name"]] = true;
+      set(inFiles, file["name"]);
     });
     var files = FS.lookupPath("/work").node.contents;
     // NOTE(Kagami): Search for files only in working directory, one
