@@ -111,6 +111,44 @@ describe("FFmpeg WebM", function() {
       });
       expect(code).to.equal(0);
     });
+
+    it("should accept Array in MEMFS input", function() {
+      var data = Array.prototype.slice.call(testData);
+      var code;
+      ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-frames:a", "1", "-c:a", "libopus",
+          "-f", "null", "-",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        onExit: function(v) {code = v},
+        MEMFS: [{name: "test.webm", data: data}],
+      });
+      expect(code).to.equal(0);
+    });
+
+    it("should accept Uint16Array in MEMFS input", function() {
+      var data = new Uint16Array(testData.buffer);
+      var code;
+      ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-frames:a", "1", "-c:a", "libopus",
+          "-f", "null", "-",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        onExit: function(v) {code = v},
+        MEMFS: [{name: "test.webm", data: data}],
+      });
+      expect(code).to.equal(0);
+    });
   });
 
   describe("Worker", function() {

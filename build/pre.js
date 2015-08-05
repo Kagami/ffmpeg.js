@@ -46,7 +46,14 @@ function __ffmpegjs(__ffmpegjs_opts) {
       }
       var fd = FS.open(file["name"], "w+");
       var data = file["data"];
-      if (!(data instanceof Uint8Array)) data = new Uint8Array(data);
+      // `FS.write` accepts only `Uint8Array`, so we do conversion here
+      // to simplify our API. It will work with plain `Array` too.
+      if (ArrayBuffer.isView(data)) {
+        // Avoid unnecessary copying.
+        if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
+      } else {
+        data = new Uint8Array(data);
+      }
       FS.write(fd, data, 0, data.length);
       FS.close(fd);
     });

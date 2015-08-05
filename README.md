@@ -92,7 +92,7 @@ This works in Browser as is, use e.g. [webworker-threads](https://github.com/aud
 
 Empscripten has 3 types of file systems: [MEMFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#memfs), [NODEFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#nodefs) and [IDBFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs). ffmpeg.js uses MEMFS to store the input/output files in FFmpeg's working directory. You need to pass *Array* of *Object* to `MEMFS` option with the following keys:
 * **name** *(String)* - File name, can't contain slashes.
-* **data** *(ArrayBuffer/ArrayBufferView)* - File data.
+* **data** *(ArrayBuffer/ArrayBufferView/Array)* - File data.
 
 ffmpeg.js resulting object has `MEMFS` option with the same structure and contains files which weren't passed to the input, i.e. new files created by FFmpeg.
 
