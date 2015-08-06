@@ -138,6 +138,9 @@ Thanks to [videoconverter.js](https://bgrins.github.io/videoconverter.js/) for i
 
 * Library uses LGPL FFmpeg builds, see [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
 * Library includes libopus which is [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING;h=9c739c34a3a9dd39729587eb6b1f9dd4344e58f6;hb=HEAD).
+* Library includes freetype which is [licensed under FreeType Project LICENSE](https://github.com/juj/emscripten-freetype/blob/master/docs/FTL.TXT).
+* Library includes fribidi which is [licensed under LGPL](https://github.com/behdad/fribidi/blob/master/COPYING).
+* Library includes libass which is [licensed under ISC](https://github.com/libass/libass/blob/master/COPYING).
 * Library includes libvpx which is [licensed under BSD](https://chromium.googlesource.com/webm/libvpx/+/master/LICENSE).
 * Own library code licensed under LGPL 2.1 or later.
 

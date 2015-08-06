@@ -10,3 +10,15 @@
 	path = build/opus
 	url = git://git.opus-codec.org/opus.git
 	ignore = dirty
+[submodule "build/libass"]
+	path = build/libass
+	url = https://github.com/libass/libass.git
+	ignore = dirty
+[submodule "build/freetype"]
+	path = build/freetype
+	url = https://github.com/juj/emscripten-freetype.git
+	ignore = dirty
+[submodule "build/fribidi"]
+	path = build/fribidi
+	url = https://github.com/behdad/fribidi.git
+	ignore = dirty

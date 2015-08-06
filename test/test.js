@@ -219,6 +219,24 @@ describe("FFmpeg WebM", function() {
       expect(res.MEMFS[0].name).to.equal("out.webm");
       expect(res.MEMFS[0].data.length).to.equal(0);
     });
+
+    it("should have subtitles filter", function() {
+      var code;
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-frames:v", "1", "-c:v", "libvpx",
+          "-vf", "subtitles=test.webm",
+          "-an", "-f", "null", "-",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        onExit: function(v) {code = v},
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(code).to.equal(0);
+    });
   });
 
   describe("Worker", function() {

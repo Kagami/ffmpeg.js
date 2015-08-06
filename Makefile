@@ -9,9 +9,21 @@ DECODERS = \
 	vp8 vp9 \
 	vorbis opus \
 	mpeg4 h264 \
-	mp3 ac3 aac
+	mp3 ac3 aac \
+	ass ssa srt webvtt
 
-CODEC_DEPS = build/opus/dist/lib/libopus.so build/libvpx/libvpx.so
+LIBASS_PC_PATH = \
+	../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
+FFMPEG_PC_PATH = \
+	../opus/dist/lib/pkgconfig:../libass/dist/lib/pkgconfig:$(LIBASS_PC_PATH)
+LIBASS_DEPS = \
+	build/fribidi/dist/lib/libfribidi.so \
+	build/freetype/dist/lib/libfreetype.so
+SHARED_DEPS = \
+	$(LIBASS_DEPS) \
+	build/libass/dist/lib/libass.so \
+	build/opus/dist/lib/libopus.so \
+	build/libvpx/libvpx.so
 FFMPEG_BC = build/ffmpeg/ffmpeg.bc
 PRE_JS = build/pre.js
 POST_JS_SYNC = build/post-sync.js
@@ -19,11 +31,19 @@ POST_JS_WORKER = build/post-worker.js
 
 all: ffmpeg-webm.js ffmpeg-worker-webm.js
 
-clean: clean-js clean-opus clean-libvpx clean-ffmpeg
+clean: clean-js clean-opus \
+	clean-freetype clean-fribidi clean-libass \
+	clean-libvpx clean-ffmpeg
 clean-js:
 	rm -f -- ffmpeg*.js
 clean-opus:
 	-cd build/opus && rm -rf dist && make clean
+clean-freetype:
+	-cd build/freetype && rm -rf dist && make clean
+clean-fribidi:
+	-cd build/fribidi && rm -rf dist && make clean
+clean-libass:
+	-cd build/libass && rm -rf dist && make clean
 clean-libvpx:
 	-cd build/libvpx && make clean
 clean-ffmpeg:
@@ -40,6 +60,66 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 		--disable-static \
 		--disable-doc \
 		--disable-extra-programs \
+		&& \
+	emmake make -j8 && \
+	emmake make install
+
+build/freetype/builds/unix/configure:
+	cd build/freetype && ./autogen.sh
+
+# TODO(Kagami): Optimized build? It seems to be broken:
+# <https://github.com/kripken/emscripten/issues/3576>.
+# XXX(Kagami): host/build flags are used to enable cross-compiling
+# (values must differ) but there should be some better way to achieve
+# that: now it probably won't be possible to build it on x86.
+build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
+	cd build/freetype && \
+	emconfigure ./configure \
+		CFLAGS="-Wno-warn-absolute-paths" \
+		--prefix="$$(pwd)/dist" \
+		--host=x86-none-linux \
+		--build=x86_64 \
+		--disable-static \
+		--without-zlib \
+		--without-bzip2 \
+		--without-png \
+		--without-harfbuzz \
+		&& \
+	emmake make -j8 && \
+	emmake make install
+
+build/fribidi/configure:
+	cd build/fribidi && ./bootstrap
+
+# TODO(Kagami): Report cross-compile hacks to upstream.
+build/fribidi/dist/lib/libfribidi.so: build/fribidi/configure
+	cd build/fribidi && \
+	emconfigure ./configure \
+		CFLAGS=-O3 \
+		NM=llvm-nm \
+		--prefix="$$(pwd)/dist" \
+		--disable-dependency-tracking \
+		--disable-debug \
+		--without-glib \
+		&& \
+	sed -i 's/^SUBDIRS =.*/SUBDIRS=gen.tab charset lib/' Makefile && \
+	sed -i 's/^CC =.*/CC=gcc/' gen.tab/Makefile && \
+	emmake make -j8 && \
+	emmake make install
+
+build/libass/configure:
+	cd build/libass && ./autogen.sh
+
+build/libass/dist/lib/libass.so: build/libass/configure $(LIBASS_DEPS)
+	cd build/libass && \
+	EM_PKG_CONFIG_PATH=$(LIBASS_PC_PATH) emconfigure ./configure \
+		CFLAGS="-O3 -Wno-warn-absolute-paths" \
+		--prefix="$$(pwd)/dist" \
+		--disable-static \
+		--disable-enca \
+		--disable-fontconfig \
+		--disable-harfbuzz \
+		--disable-asm \
 		&& \
 	emmake make -j8 && \
 	emmake make install
@@ -65,7 +145,6 @@ build/libvpx/libvpx.so:
 		&& \
 	emmake make -j8
 
-# Build FFmpeg.
 # TODO(Kagami): Emscripten documentation recommends to always use shared
 # libraries but it's not possible in case of ffmpeg because it has
 # multiple declarations of `ff_log2_tab` symbol. GCC builds FFmpeg fine
@@ -75,10 +154,9 @@ build/libvpx/libvpx.so:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
-$(FFMPEG_BC): $(CODEC_DEPS)
+build/ffmpeg/ffmpeg.bc: $(SHARED_DEPS)
 	cd build/ffmpeg && \
-	make clean; \
-	EM_PKG_CONFIG_PATH=../opus/dist/lib/pkgconfig emconfigure ./configure \
+	EM_PKG_CONFIG_PATH=$(FFMPEG_PC_PATH) emconfigure ./configure \
 		--cc=emcc \
 		--enable-cross-compile \
 		--target-os=none \
@@ -111,8 +189,10 @@ $(FFMPEG_BC): $(CODEC_DEPS)
 		$(addprefix --enable-demuxer=,$(DEMUXERS)) \
 		--enable-protocol=file \
 		--enable-filter=aresample \
+		--enable-filter=subtitles \
 		--disable-bzlib \
 		--disable-iconv \
+		--enable-libass \
 		--enable-libopus \
 		--enable-libvpx \
 		--disable-libxcb \
@@ -131,11 +211,8 @@ $(FFMPEG_BC): $(CODEC_DEPS)
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
 
-ffmpeg-webm.js: $(FFMPEG_BC) \
-		$(CODEC_DEPS) \
-		$(PRE_JS) \
-		$(POST_JS_SYNC)
-	emcc $(FFMPEG_BC) $(CODEC_DEPS) \
+ffmpeg-webm.js: $(FFMPEG_BC) $(PRE_JS) $(POST_JS_SYNC)
+	emcc $(FFMPEG_BC) $(SHARED_DEPS) \
 		--closure 1 \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
@@ -145,11 +222,8 @@ ffmpeg-webm.js: $(FFMPEG_BC) \
 		--post-js $(POST_JS_SYNC) \
 		-o $@
 
-ffmpeg-worker-webm.js: $(FFMPEG_BC) \
-			$(CODEC_DEPS) \
-			$(PRE_JS) \
-			$(POST_JS_WORKER)
-	emcc $(FFMPEG_BC) $(CODEC_DEPS) \
+ffmpeg-worker-webm.js: $(FFMPEG_BC) $(PRE_JS) $(POST_JS_WORKER)
+	emcc $(FFMPEG_BC) $(SHARED_DEPS) \
 		--closure 1 \
 		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 		-s TOTAL_MEMORY=67108864 \
