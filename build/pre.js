@@ -85,7 +85,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
       if (ArrayBuffer["isView"](data)) {
         if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
       } else {
-        data = new Uint8Array(data);
+        data = new Uint8Array(data || []);
       }
       return {"name": filename, "data": data};
     });

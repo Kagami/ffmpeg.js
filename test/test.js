@@ -8,6 +8,8 @@ var ffmpeg_webm = require("../ffmpeg-webm");
 function noop() {};
 var testDataPath = path.join(__dirname, "test.webm");
 var testData = new Uint8Array(fs.readFileSync(testDataPath));
+// Mute uncaughtException warnings.
+process.setMaxListeners(30);
 
 describe("FFmpeg WebM", function() {
   this.timeout(10000);
@@ -199,6 +201,23 @@ describe("FFmpeg WebM", function() {
       expect(res.MEMFS).to.have.length(1);
       expect(res.MEMFS[0].name).to.equal("__proto__");
       expect(res.MEMFS[0].data.length).to.be.above(0);
+    });
+
+    it("should return empty array for empty output", function() {
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vf", "not_existent",
+          "out.webm",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(res.MEMFS).to.have.length(1);
+      expect(res.MEMFS[0].name).to.equal("out.webm");
+      expect(res.MEMFS[0].data.length).to.equal(0);
     });
   });
 
