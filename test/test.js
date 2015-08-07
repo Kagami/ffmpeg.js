@@ -184,8 +184,7 @@ describe("FFmpeg WebM", function() {
       expect(file.data).to.be.an.instanceof(Uint8Array);
     });
 
-    // TODO(Kagami): Not our bug - report to Emscripten.
-    it.skip("should work with other crazy output name", function() {
+    it("should work with other crazy output name", function() {
       var res = ffmpeg_webm({
         arguments: [
           "-i", "test.webm",

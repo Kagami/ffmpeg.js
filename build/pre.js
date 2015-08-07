@@ -56,29 +56,48 @@ function __ffmpegjs(__ffmpegjs_opts) {
   };
 
   Module["postRun"] = function() {
-    var inFiles = Object.create(null);
-    var hasProto = false;
-    function set(obj, prop) {
-      if (prop === "__proto__") {
-        hasProto = true;
-      } else {
-        inFiles[prop] = true;
-      }
-    }
-    function has(obj, prop) {
-      return prop === "__proto__" ? hasProto : prop in obj;
-    }
-    (__ffmpegjs_opts["MEMFS"] || []).forEach(function(file) {
-      set(inFiles, file["name"]);
-    });
-    var files = FS.lookupPath("/work").node.contents;
+    var Set = function() {
+      var obj = Object.create(null);
+      var hasProto = false;
+      return {
+        has: function(prop) {
+          return prop === "__proto__" ? hasProto : prop in obj;
+        },
+        set: function(prop) {
+          if (prop === "__proto__") {
+            hasProto = true;
+          } else {
+            obj[prop] = true;
+          }
+        },
+      };
+    };
+
     // NOTE(Kagami): Search for files only in working directory, one
     // level depth. Since FFmpeg shouldn't normally create
     // subdirectories, it should be enough.
-    var outFiles = Object.keys(files).filter(function(filename) {
-      return !has(inFiles, filename);
-    }).map(function(filename) {
-      var data = files[filename].contents;
+    function listFiles(dir) {
+      var obj = FS.lookupPath(dir).node.contents;
+      var names = Object.keys(obj);
+      // Fix for possible file with "__proto__" name. See
+      // <https://github.com/kripken/emscripten/issues/3663> for
+      // details.
+      if (obj.__proto__ && obj.__proto__.name === "__proto__") {
+        names.push("__proto__");
+      }
+      return names.map(function(name) {
+        return obj[name];
+      });
+    }
+
+    var inFiles = Set();
+    (__ffmpegjs_opts["MEMFS"] || []).forEach(function(file) {
+      inFiles.set(file["name"]);
+    });
+    var outFiles = listFiles("/work").filter(function(file) {
+      return !inFiles.has(file.name);
+    }).map(function(file) {
+      var data = file.contents;
       // library_memfs will use `Array` for newly created files (see
       // settings.js, MEMFS_APPEND_TO_TYPED_ARRAYS), so convert them
       // back to typed arrays to simplify API.
@@ -87,7 +106,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
       } else {
         data = new Uint8Array(data || []);
       }
-      return {"name": filename, "data": data};
+      return {"name": file.name, "data": data};
     });
     __ffmpegjs_return = {"MEMFS": outFiles};
   };

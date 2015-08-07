@@ -145,9 +145,6 @@ build/libvpx/libvpx.so:
 		&& \
 	emmake make -j8
 
-patch-ffmpeg:
-	-cd build/ffmpeg && patch -p1 -N -r - < ../ffmpeg-default-font.patch
-
 # TODO(Kagami): Emscripten documentation recommends to always use shared
 # libraries but it's not possible in case of ffmpeg because it has
 # multiple declarations of `ff_log2_tab` symbol. GCC builds FFmpeg fine
@@ -157,8 +154,9 @@ patch-ffmpeg:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
-build/ffmpeg/ffmpeg.bc: patch-ffmpeg $(SHARED_DEPS)
+build/ffmpeg/ffmpeg.bc: $(SHARED_DEPS)
 	cd build/ffmpeg && \
+	patch -p1 -N -r - < ../ffmpeg-default-font.patch; \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_PC_PATH) emconfigure ./configure \
 		--cc=emcc \
 		--enable-cross-compile \
