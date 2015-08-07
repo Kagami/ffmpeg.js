@@ -56,7 +56,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
   };
 
   Module["postRun"] = function() {
-    var Set = function() {
+    var SimpleSet = function() {
       var obj = Object.create(null);
       var hasProto = false;
       return {
@@ -90,7 +90,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
       });
     }
 
-    var inFiles = Set();
+    var inFiles = SimpleSet();
     (__ffmpegjs_opts["MEMFS"] || []).forEach(function(file) {
       inFiles.set(file["name"]);
     });
