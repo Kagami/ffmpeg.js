@@ -77,16 +77,16 @@ function __ffmpegjs(__ffmpegjs_opts) {
     // level depth. Since FFmpeg shouldn't normally create
     // subdirectories, it should be enough.
     function listFiles(dir) {
-      var obj = FS.lookupPath(dir).node.contents;
-      var names = Object.keys(obj);
+      var contents = FS.lookupPath(dir).node.contents;
+      var filenames = Object.keys(contents);
       // Fix for possible file with "__proto__" name. See
       // <https://github.com/kripken/emscripten/issues/3663> for
       // details.
-      if (obj.__proto__ && obj.__proto__.name === "__proto__") {
-        names.push("__proto__");
+      if (contents.__proto__ && contents.__proto__.name === "__proto__") {
+        filenames.push("__proto__");
       }
-      return names.map(function(name) {
-        return obj[name];
+      return filenames.map(function(filename) {
+        return contents[filename];
       });
     }
 
