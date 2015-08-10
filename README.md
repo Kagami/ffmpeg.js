@@ -9,6 +9,8 @@ This library provides FFmpeg builds ported to JavaScript using [Emscripten proje
 Currently available builds (additional builds may be added in future):
 * `ffmpeg-webm.js` - WebM encoding (VP8 & Opus encoders, popular decoders).
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
+* `ffmpeg-mp4.js` - MP4 encoding (H.264 & MP3 encoders, popular decoders).
+* `ffmpeg-worker-mp4.js` - Web Worker version of `ffmpeg-mp4.js`.
 
 Note: only NPM releases contain abovementioned files.
 
@@ -136,12 +138,27 @@ Thanks to [videoconverter.js](https://bgrins.github.io/videoconverter.js/) for i
 
 ## License
 
-* Library uses LGPL FFmpeg builds, see [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
-* Library includes libopus which is [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING;h=9c739c34a3a9dd39729587eb6b1f9dd4344e58f6;hb=HEAD).
-* Library includes freetype which is [licensed under FreeType Project LICENSE](https://github.com/juj/emscripten-freetype/blob/master/docs/FTL.TXT).
-* Library includes fribidi which is [licensed under LGPL](https://github.com/behdad/fribidi/blob/master/COPYING).
-* Library includes libass which is [licensed under ISC](https://github.com/libass/libass/blob/master/COPYING).
-* Library includes libvpx which is [licensed under BSD](https://chromium.googlesource.com/webm/libvpx/+/master/LICENSE).
-* Own library code licensed under LGPL 2.1 or later.
+Own library code licensed under LGPL 2.1 or later.
 
-See [LICENSE](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE) for the full text of licenses.
+### WebM build
+
+This build uses LGPL version of FFmpeg and thus available under LGPL 2.1 or later. See [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
+
+Included libraries:
+* libopus [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING;h=9c739c34a3a9dd39729587eb6b1f9dd4344e58f6;hb=HEAD).
+* freetype [licensed under FreeType Project LICENSE](https://github.com/juj/emscripten-freetype/blob/master/docs/FTL.TXT).
+* fribidi [licensed under LGPL](https://github.com/behdad/fribidi/blob/master/COPYING).
+* libass [licensed under ISC](https://github.com/libass/libass/blob/master/COPYING).
+* libvpx [licensed under BSD](https://chromium.googlesource.com/webm/libvpx/+/master/LICENSE).
+
+See [LICENSE.WEBM](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.WEBM) for the full text of software licenses used in this build.
+
+### MP4 build
+
+This build uses GPL version of FFmpeg and thus available under GPL 2.0. It also includes patent encumbered H.264 and MP3 encoders. Make sure to contact lawyer before using it in your country.
+
+Included libraries:
+* x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING;h=d60c31a97a544b53039088d14fe9114583c0efc3;hb=HEAD)
+* LAME [licensed under LGPL](https://github.com/rbrito/lame/blob/origin/COPYING)
+
+See [LICENSE.MP4](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.MP4) for the full text of software licenses used in this build.

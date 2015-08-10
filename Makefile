@@ -14,14 +14,15 @@ COMMON_DECODERS = \
 	mp3 ac3 aac \
 	ass ssa srt webvtt
 
-WEBM = ffmpeg-webm.js ffmpeg-worker-webm.js
 WEBM_MUXERS = webm ogg null
 WEBM_ENCODERS = libvpx_vp8 libopus
 FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
-LIBASS_PC_PATH = \
-	../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
+LIBASS_PC_PATH = ../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
 FFMPEG_WEBM_PC_PATH = \
-	../opus/dist/lib/pkgconfig:../libass/dist/lib/pkgconfig:$(LIBASS_PC_PATH)
+	../opus/dist/lib/pkgconfig:\
+	../libass/dist/lib/pkgconfig:\
+	$(LIBASS_PC_PATH)
+FFMPEG_WEBM_PC_PATH = $(subst : ,:,$(FFMPEG_WEBM_PC_PATH))
 LIBASS_DEPS = \
 	build/fribidi/dist/lib/libfribidi.so \
 	build/freetype/dist/lib/libfreetype.so
@@ -31,11 +32,22 @@ WEBM_SHARED_DEPS = \
 	build/opus/dist/lib/libopus.so \
 	build/libvpx/libvpx.so
 
-all: $(WEBM)
+MP4_MUXERS = mp4 null
+MP4_ENCODERS = libx264 libmp3lame
+FFMPEG_MP4_BC = build/ffmpeg-mp4/ffmpeg.bc
+FFMPEG_MP4_PC_PATH = ../x264/dist/lib/pkgconfig
+MP4_SHARED_DEPS = \
+	build/lame/dist/lib/libmp3lame.so \
+	build/x264/dist/lib/libx264.so
 
-clean: clean-js clean-opus \
+all: webm mp4
+webm: ffmpeg-webm.js ffmpeg-worker-webm.js
+mp4: ffmpeg-mp4.js ffmpeg-worker-mp4.js
+
+clean: clean-js \
 	clean-freetype clean-fribidi clean-libass \
-	clean-libvpx clean-ffmpeg-webm
+	clean-opus clean-libvpx clean-ffmpeg-webm \
+	clean-lame clean-x264 clean-ffmpeg-mp4
 clean-js:
 	rm -f -- ffmpeg*.js
 clean-opus:
@@ -48,8 +60,12 @@ clean-libass:
 	-cd build/libass && rm -rf dist && make clean
 clean-libvpx:
 	-cd build/libvpx && make clean
-clean-ffmpeg-webm:
-	-cd build/ffmpeg-webm && rm -f ffmpeg.bc && make clean
+clean-lame:
+	-cd build/lame && rm -rf dist && make clean
+clean-x264:
+	-cd build/x264 && rm -rf dist && make clean
+clean-ffmpeg-mp4:
+	-cd build/ffmpeg-mp4 && rm -f ffmpeg.bc && make clean
 
 build/opus/configure:
 	cd build/opus && ./autogen.sh
@@ -147,6 +163,45 @@ build/libvpx/libvpx.so:
 		&& \
 	emmake make -j8
 
+build/lame/dist/lib/libmp3lame.so:
+	cd build/lame && \
+	git reset --hard && \
+	patch -p1 < ../lame-configure.patch && \
+	emconfigure ./configure \
+		--prefix="$$(pwd)/dist" \
+		--host=x86-none-linux \
+		--disable-static \
+		--disable-gtktest \
+		--disable-analyzer-hooks \
+		--disable-decoder \
+		--disable-frontend \
+		&& \
+	emmake make -j8 && \
+	emmake make install
+
+build/x264/dist/lib/libx264.so:
+	cd build/x264 && \
+	git reset --hard && \
+	patch -p1 < ../x264-configure.patch && \
+	emconfigure ./configure \
+		--prefix="$$(pwd)/dist" \
+		--extra-cflags="-Wno-unknown-warning-option" \
+		--host=x86-none-linux \
+		--disable-cli \
+		--enable-shared \
+		--disable-opencl \
+		--disable-thread \
+		--disable-asm \
+		--disable-avs \
+		--disable-swscale \
+		--disable-lavf \
+		--disable-ffms \
+		--disable-gpac \
+		--disable-lsmash \
+		&& \
+	emmake make -j8 && \
+	emmake make install
+
 # TODO(Kagami): Emscripten documentation recommends to always use shared
 # libraries but it's not possible in case of ffmpeg because it has
 # multiple declarations of `ff_log2_tab` symbol. GCC builds FFmpeg fine
@@ -198,7 +253,8 @@ FFMPEG_COMMON_ARGS = \
 
 build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	cd build/ffmpeg-webm && \
-	patch -p1 -N -r - < ../ffmpeg-default-font.patch; \
+	git reset --hard && \
+	patch -p1 < ../ffmpeg-default-font.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
@@ -209,6 +265,21 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 		--enable-libvpx \
 		--extra-cflags="-Wno-warn-absolute-paths -I../libvpx" \
 		--extra-ldflags="-L../libvpx" \
+		&& \
+	emmake make -j8 && \
+	cp ffmpeg ffmpeg.bc
+
+build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
+	cd build/ffmpeg-mp4 && \
+	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
+		$(FFMPEG_COMMON_ARGS) \
+		$(addprefix --enable-encoder=,$(MP4_ENCODERS)) \
+		$(addprefix --enable-muxer=,$(MP4_MUXERS)) \
+		--enable-gpl \
+		--enable-libmp3lame \
+		--enable-libx264 \
+		--extra-cflags="-Wno-warn-absolute-paths -I../lame/dist/include" \
+		--extra-ldflags="-L../lame/dist/lib" \
 		&& \
 	emmake make -j8 && \
 	cp ffmpeg ffmpeg.bc
@@ -232,5 +303,15 @@ ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_SYNC)
 
 ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
+		--post-js $(POST_JS_WORKER) \
+		$(EMCC_COMMON_ARGS)
+
+ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_SYNC)
+	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
+		--post-js $(POST_JS_SYNC) \
+		$(EMCC_COMMON_ARGS)
+
+ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
+	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_ARGS)

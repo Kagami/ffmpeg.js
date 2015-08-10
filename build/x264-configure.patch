@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 768a781..57f72e8 100755
+--- a/configure
++++ b/configure
+@@ -879,7 +879,7 @@ ASFLAGS="$ASFLAGS -DSTACK_ALIGNMENT=$stack_alignment"
+ 
+ # skip endianness check for Intel Compiler and MSVS, as all supported platforms are little. each have flags that will cause the check to fail as well
+ CPU_ENDIAN="little-endian"
+-if [ $compiler = GNU ]; then
++if false; then
+     echo "int i[2] = {0x42494745,0}; double f[2] = {0x1.0656e6469616ep+102,0};" > conftest.c
+     $CC $CFLAGS conftest.c -c -o conftest.o 2>/dev/null || die "endian test failed"
+     if (${cross_prefix}strings -a conftest.o | grep -q BIGE) && (${cross_prefix}strings -a conftest.o | grep -q FPendian) ; then

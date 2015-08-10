@@ -4,6 +4,7 @@ var fs = require("fs");
 var path = require("path");
 var Worker = require("webworker-threads").Worker;
 var ffmpeg_webm = require("../ffmpeg-webm");
+var ffmpeg_mp4 = require("../ffmpeg-mp4");
 
 function noop() {};
 var testDataPath = path.join(__dirname, "test.webm");
@@ -11,7 +12,7 @@ var testData = new Uint8Array(fs.readFileSync(testDataPath));
 // Mute uncaughtException warnings.
 process.setMaxListeners(30);
 
-describe("FFmpeg WebM", function() {
+describe("WebM", function() {
   this.timeout(10000);
 
   describe("Sync", function() {
@@ -313,6 +314,85 @@ describe("FFmpeg WebM", function() {
           expect(mem).to.have.length(1);
           expect(mem[0].name).to.equal("out.webm");
           expect(mem[0].data.length).to.be.above(0);
+          worker.terminate();
+          done();
+          break;
+        }
+      };
+    });
+  });
+});
+
+describe("MP4", function() {
+  this.timeout(10000);
+
+  describe("Sync", function() {
+    it("should print version to stdout", function(done) {
+      var stdout = "";
+      var stderr = "";
+      ffmpeg_mp4({
+        arguments: ["-version"],
+        print: function(data) { stdout += data + "\n"; },
+        printErr: function(data) { stderr += data + "\n"; },
+        onExit: function(code) {
+          expect(code).to.equal(0);
+          expect(stderr).to.be.empty;
+          expect(stdout).to.match(/^ffmpeg version /);
+          done();
+        },
+      });
+    });
+
+    it("should encode test file to MP4/H.264/MP3 at MEMFS", function() {
+      this.timeout(60000);
+      var code;
+      var res = ffmpeg_mp4({
+        arguments: [
+          "-i", "test.webm",
+          "-frames:v", "5", "-c:v", "libx264",
+          "-c:a", "libmp3lame",
+          "out.mp4",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        onExit: function(v) {code = v},
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(code).to.equal(0);
+      expect(res.MEMFS).to.have.length(1);
+      var file = res.MEMFS[0];
+      expect(file.name).to.equal("out.mp4");
+      expect(file.data.length).to.be.above(0);
+      expect(file.data).to.be.an.instanceof(Uint8Array);
+    });
+  });
+
+  // FIXME(Kagami): webworker-threads doesn't like two workers spawned
+  // at the same time and hangs. Seems like we need to search for
+  // different node Worker library.
+  describe.skip("Worker", function() {
+    it("should print version to stdout", function(done) {
+      var stdout = "";
+      var stderr = "";
+      var worker = new Worker("ffmpeg-worker-mp4.js");
+      worker.onerror = done;
+      worker.onmessage = function(e) {
+        var msg = e.data;
+        switch (msg.type) {
+        case "ready":
+          worker.postMessage({type: "run", arguments: ["-version"]});
+          break;
+        case "stdout":
+          stdout += msg.data + "\n";
+          break;
+        case "stderr":
+          stderr += msg.data + "\n";
+          break;
+        case "exit":
+          expect(stderr).to.be.empty;
+          expect(msg.data).to.equal(0);
+          expect(stdout).to.match(/^ffmpeg version /);
           worker.terminate();
           done();
           break;

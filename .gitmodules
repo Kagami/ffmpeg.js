@@ -22,3 +22,15 @@
 	path = build/ffmpeg-webm
 	url = git://source.ffmpeg.org/ffmpeg.git
 	ignore = dirty
+[submodule "build/lame"]
+	path = build/lame
+	url = https://github.com/rbrito/lame.git
+	ignore = dirty
+[submodule "build/x264"]
+	path = build/x264
+	url = git://git.videolan.org/x264.git
+	ignore = dirty
+[submodule "build/ffmpeg-mp4"]
+	path = build/ffmpeg-mp4
+	url = git://source.ffmpeg.org/ffmpeg.git
+	ignore = dirty

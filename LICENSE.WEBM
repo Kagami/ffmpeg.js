@@ -51,13 +51,17 @@ https://datatracker.ietf.org/ipr/1526/
 
 ==============================================================================
 
-FreeType license can be found here:
-<https://raw.githubusercontent.com/juj/emscripten-freetype/master/docs/FTL.TXT>.
+This software uses code of FreeType <http://www.freetype.org/> licensed under
+the FreeType Project LICENSE
+<https://github.com/juj/emscripten-freetype/blob/master/docs/FTL.TXT>
+and its source can be downloaded here
+<https://github.com/juj/emscripten-freetype>.
 
 ==============================================================================
 
-fribidi license can be found here:
-<https://raw.githubusercontent.com/behdad/fribidi/master/COPYING>.
+This software uses code of fribidi <http://fribidi.org/> licensed under
+the LGPLv2.1 <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>
+and its source can be downloaded here <https://github.com/behdad/fribidi>.
 
 ==============================================================================
 
@@ -109,6 +113,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================
 
 ffmpeg.js - Port of FFmpeg with Emscripten
+Copyright (C) 2015  Kagami Hiiragi
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public

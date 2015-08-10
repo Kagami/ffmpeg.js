@@ -1,0 +1,12 @@
+diff --git a/configure b/configure
+index 87aef96..9bda913 100755
+--- a/configure
++++ b/configure
+@@ -11922,7 +11922,6 @@ for ac_header in \
+ 		 sys/soundcard.h \
+ 		 sys/time.h \
+ 		 unistd.h \
+-		 xmmintrin.h \
+ 		 linux/soundcard.h
+ do :
+   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
