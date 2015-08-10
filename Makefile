@@ -2,7 +2,7 @@
 # You need emsdk environment installed and activated, see:
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
-MUXERS = webm null
+MUXERS = webm ogg null
 DEMUXERS = matroska avi mov concat
 ENCODERS = libvpx_vp8 libopus
 DECODERS = \

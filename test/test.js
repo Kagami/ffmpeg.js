@@ -236,6 +236,26 @@ describe("FFmpeg WebM", function() {
       });
       expect(code).to.equal(0);
     });
+
+    it("should have Ogg muxer", function() {
+      var res = ffmpeg_webm({
+        arguments: [
+          "-i", "test.webm",
+          "-vn",
+          "-frames:a", "1", "-c:a", "libopus",
+          "out.ogg",
+        ],
+        stdin: noop,
+        print: noop,
+        printErr: noop,
+        MEMFS: [{name: "test.webm", data: testData}],
+      });
+      expect(res.MEMFS).to.have.length(1);
+      var file = res.MEMFS[0];
+      expect(file.name).to.equal("out.ogg");
+      expect(file.data.length).to.be.above(0);
+      expect(file.data).to.be.an.instanceof(Uint8Array);
+    });
   });
 
   describe("Worker", function() {
