@@ -158,7 +158,7 @@ See [LICENSE.WEBM](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.WEBM)
 This build uses GPL version of FFmpeg and thus available under GPL 2.0. It also includes patent encumbered H.264 and MP3 encoders. Make sure to contact lawyer before using it in your country.
 
 Included libraries:
-* x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING;h=d60c31a97a544b53039088d14fe9114583c0efc3;hb=HEAD)
-* LAME [licensed under LGPL](https://github.com/rbrito/lame/blob/origin/COPYING)
+* x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING;h=d60c31a97a544b53039088d14fe9114583c0efc3;hb=HEAD).
+* LAME [licensed under LGPL](https://github.com/rbrito/lame/blob/origin/COPYING).
 
 See [LICENSE.MP4](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.MP4) for the full text of software licenses used in this build.
