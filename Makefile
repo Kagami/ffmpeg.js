@@ -18,11 +18,11 @@ WEBM_MUXERS = webm ogg null
 WEBM_ENCODERS = libvpx_vp8 libopus
 FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
 LIBASS_PC_PATH = ../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
-FFMPEG_WEBM_PC_PATH = \
-	../opus/dist/lib/pkgconfig:\
+FFMPEG_WEBM_PC_PATH_ = \
+	$(LIBASS_PC_PATH):\
 	../libass/dist/lib/pkgconfig:\
-	$(LIBASS_PC_PATH)
-FFMPEG_WEBM_PC_PATH = $(subst : ,:,$(FFMPEG_WEBM_PC_PATH))
+	../opus/dist/lib/pkgconfig
+FFMPEG_WEBM_PC_PATH = $(subst : ,:,$(FFMPEG_WEBM_PC_PATH_))
 LIBASS_DEPS = \
 	build/fribidi/dist/lib/libfribidi.so \
 	build/freetype/dist/lib/libfreetype.so
@@ -30,7 +30,7 @@ WEBM_SHARED_DEPS = \
 	$(LIBASS_DEPS) \
 	build/libass/dist/lib/libass.so \
 	build/opus/dist/lib/libopus.so \
-	build/libvpx/libvpx.so
+	build/libvpx/dist/lib/libvpx.so
 
 MP4_MUXERS = mp4 null
 MP4_ENCODERS = libx264 libmp3lame
@@ -59,11 +59,13 @@ clean-fribidi:
 clean-libass:
 	-cd build/libass && rm -rf dist && make clean
 clean-libvpx:
-	-cd build/libvpx && make clean
+	-cd build/libvpx && rm -rf dist && make clean
 clean-lame:
 	-cd build/lame && rm -rf dist && make clean
 clean-x264:
 	-cd build/x264 && rm -rf dist && make clean
+clean-ffmpeg-webm:
+	-cd build/ffmpeg-webm && rm -f ffmpeg.bc && make clean
 clean-ffmpeg-mp4:
 	-cd build/ffmpeg-mp4 && rm -f ffmpeg.bc && make clean
 
@@ -142,9 +144,10 @@ build/libass/dist/lib/libass.so: build/libass/configure $(LIBASS_DEPS)
 	emmake make -j8 && \
 	emmake make install
 
-build/libvpx/libvpx.so:
+build/libvpx/dist/lib/libvpx.so:
 	cd build/libvpx && \
 	emconfigure ./configure \
+		--prefix="$$(pwd)/dist" \
 		--target=generic-gnu \
 		--extra-cflags="-Wno-warn-absolute-paths" \
 		--disable-dependency-tracking \
@@ -161,7 +164,8 @@ build/libvpx/libvpx.so:
 		--disable-vp8-decoder \
 		--disable-vp9 \
 		&& \
-	emmake make -j8
+	emmake make -j8 && \
+	emmake make install
 
 build/lame/dist/lib/libmp3lame.so:
 	cd build/lame && \
@@ -263,8 +267,8 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 		--enable-libass \
 		--enable-libopus \
 		--enable-libvpx \
-		--extra-cflags="-Wno-warn-absolute-paths -I../libvpx" \
-		--extra-ldflags="-L../libvpx" \
+		--extra-cflags="-Wno-warn-absolute-paths -I../libvpx/dist/include" \
+		--extra-ldflags="-L../libvpx/dist/lib" \
 		&& \
 	emmake make -j8 && \
 	cp ffmpeg ffmpeg.bc
