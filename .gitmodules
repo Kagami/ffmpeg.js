@@ -1,7 +1,3 @@
-[submodule "build/ffmpeg"]
-	path = build/ffmpeg
-	url = git://source.ffmpeg.org/ffmpeg.git
-	ignore = dirty
 [submodule "build/libvpx"]
 	path = build/libvpx
 	url = https://chromium.googlesource.com/webm/libvpx
@@ -21,4 +17,8 @@
 [submodule "build/fribidi"]
 	path = build/fribidi
 	url = https://github.com/behdad/fribidi.git
+	ignore = dirty
+[submodule "build/ffmpeg-webm"]
+	path = build/ffmpeg-webm
+	url = git://source.ffmpeg.org/ffmpeg.git
 	ignore = dirty

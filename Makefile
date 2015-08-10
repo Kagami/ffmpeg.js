@@ -2,38 +2,40 @@
 # You need emsdk environment installed and activated, see:
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
-MUXERS = webm ogg null
-DEMUXERS = matroska avi mov concat
-ENCODERS = libvpx_vp8 libopus
-DECODERS = \
+PRE_JS = build/pre.js
+POST_JS_SYNC = build/post-sync.js
+POST_JS_WORKER = build/post-worker.js
+
+COMMON_DEMUXERS = matroska avi mov concat
+COMMON_DECODERS = \
 	vp8 vp9 \
 	vorbis opus \
 	mpeg4 h264 \
 	mp3 ac3 aac \
 	ass ssa srt webvtt
 
+WEBM = ffmpeg-webm.js ffmpeg-worker-webm.js
+WEBM_MUXERS = webm ogg null
+WEBM_ENCODERS = libvpx_vp8 libopus
+FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
 LIBASS_PC_PATH = \
 	../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
-FFMPEG_PC_PATH = \
+FFMPEG_WEBM_PC_PATH = \
 	../opus/dist/lib/pkgconfig:../libass/dist/lib/pkgconfig:$(LIBASS_PC_PATH)
 LIBASS_DEPS = \
 	build/fribidi/dist/lib/libfribidi.so \
 	build/freetype/dist/lib/libfreetype.so
-SHARED_DEPS = \
+WEBM_SHARED_DEPS = \
 	$(LIBASS_DEPS) \
 	build/libass/dist/lib/libass.so \
 	build/opus/dist/lib/libopus.so \
 	build/libvpx/libvpx.so
-FFMPEG_BC = build/ffmpeg/ffmpeg.bc
-PRE_JS = build/pre.js
-POST_JS_SYNC = build/post-sync.js
-POST_JS_WORKER = build/post-worker.js
 
-all: ffmpeg-webm.js ffmpeg-worker-webm.js
+all: $(WEBM)
 
 clean: clean-js clean-opus \
 	clean-freetype clean-fribidi clean-libass \
-	clean-libvpx clean-ffmpeg
+	clean-libvpx clean-ffmpeg-webm
 clean-js:
 	rm -f -- ffmpeg*.js
 clean-opus:
@@ -46,8 +48,8 @@ clean-libass:
 	-cd build/libass && rm -rf dist && make clean
 clean-libvpx:
 	-cd build/libvpx && make clean
-clean-ffmpeg:
-	-cd build/ffmpeg && rm -f ffmpeg.bc && make clean
+clean-ffmpeg-webm:
+	-cd build/ffmpeg-webm && rm -f ffmpeg.bc && make clean
 
 build/opus/configure:
 	cd build/opus && ./autogen.sh
@@ -154,54 +156,57 @@ build/libvpx/libvpx.so:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
-build/ffmpeg/ffmpeg.bc: $(SHARED_DEPS)
-	cd build/ffmpeg && \
+FFMPEG_COMMON_ARGS = \
+	--cc=emcc \
+	--enable-cross-compile \
+	--target-os=none \
+	--arch=x86 \
+	--disable-runtime-cpudetect \
+	--disable-asm \
+	--disable-fast-unaligned \
+	--disable-pthreads \
+	--disable-w32threads \
+	--disable-os2threads \
+	--disable-debug \
+	--disable-stripping \
+	\
+	--disable-all \
+	--enable-ffmpeg \
+	--enable-avcodec \
+	--enable-avformat \
+	--enable-avutil \
+	--enable-swresample \
+	--enable-avfilter \
+	--disable-network \
+	--disable-d3d11va \
+	--disable-dxva2 \
+	--disable-vaapi \
+	--disable-vda \
+	--disable-vdpau \
+	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
+	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
+	--enable-protocol=file \
+	--enable-filter=aresample \
+	--disable-bzlib \
+	--disable-iconv \
+	--disable-libxcb \
+	--disable-lzma \
+	--disable-sdl \
+	--disable-securetransport \
+	--disable-xlib \
+	--disable-zlib
+
+build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
+	cd build/ffmpeg-webm && \
 	patch -p1 -N -r - < ../ffmpeg-default-font.patch; \
-	EM_PKG_CONFIG_PATH=$(FFMPEG_PC_PATH) emconfigure ./configure \
-		--cc=emcc \
-		--enable-cross-compile \
-		--target-os=none \
-		--arch=x86 \
-		--disable-runtime-cpudetect \
-		--disable-asm \
-		--disable-fast-unaligned \
-		--disable-pthreads \
-		--disable-w32threads \
-		--disable-os2threads \
-		--disable-debug \
-		--disable-stripping \
-		\
-		--disable-all \
-		--enable-ffmpeg \
-		--enable-avcodec \
-		--enable-avformat \
-		--enable-avutil \
-		--enable-swresample \
-		--enable-avfilter \
-		--disable-network \
-		--disable-d3d11va \
-		--disable-dxva2 \
-		--disable-vaapi \
-		--disable-vda \
-		--disable-vdpau \
-		$(addprefix --enable-encoder=,$(ENCODERS)) \
-		$(addprefix --enable-decoder=,$(DECODERS)) \
-		$(addprefix --enable-muxer=,$(MUXERS)) \
-		$(addprefix --enable-demuxer=,$(DEMUXERS)) \
-		--enable-protocol=file \
-		--enable-filter=aresample \
+	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
+		$(FFMPEG_COMMON_ARGS) \
+		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
+		$(addprefix --enable-muxer=,$(WEBM_MUXERS)) \
 		--enable-filter=subtitles \
-		--disable-bzlib \
-		--disable-iconv \
 		--enable-libass \
 		--enable-libopus \
 		--enable-libvpx \
-		--disable-libxcb \
-		--disable-lzma \
-		--disable-sdl \
-		--disable-securetransport \
-		--disable-xlib \
-		--disable-zlib \
 		--extra-cflags="-Wno-warn-absolute-paths -I../libvpx" \
 		--extra-ldflags="-L../libvpx" \
 		&& \
@@ -211,25 +216,21 @@ build/ffmpeg/ffmpeg.bc: $(SHARED_DEPS)
 # Compile bitcode to JavaScript.
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
+EMCC_COMMON_ARGS = \
+	--closure 1 \
+	-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
+	-s TOTAL_MEMORY=67108864 \
+	-s OUTLINING_LIMIT=20000 \
+	-O3 --memory-init-file 0 \
+	--pre-js $(PRE_JS) \
+	-o $@
 
-ffmpeg-webm.js: $(FFMPEG_BC) $(PRE_JS) $(POST_JS_SYNC)
-	emcc $(FFMPEG_BC) $(SHARED_DEPS) \
-		--closure 1 \
-		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
-		-s TOTAL_MEMORY=67108864 \
-		-s OUTLINING_LIMIT=20000 \
-		-O3 --memory-init-file 0 \
-		--pre-js $(PRE_JS) \
+ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_SYNC)
+	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
 		--post-js $(POST_JS_SYNC) \
-		-o $@
+		$(EMCC_COMMON_ARGS)
 
-ffmpeg-worker-webm.js: $(FFMPEG_BC) $(PRE_JS) $(POST_JS_WORKER)
-	emcc $(FFMPEG_BC) $(SHARED_DEPS) \
-		--closure 1 \
-		-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
-		-s TOTAL_MEMORY=67108864 \
-		-s OUTLINING_LIMIT=20000 \
-		-O3 --memory-init-file 0 \
-		--pre-js $(PRE_JS) \
+ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER)
+	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
-		-o $@
+		$(EMCC_COMMON_ARGS)
