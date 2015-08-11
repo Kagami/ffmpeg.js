@@ -29,7 +29,7 @@ See documentation on [Module object](https://kripken.github.io/emscripten-site/d
 
 ### Sync run
 
-ffmpeg.js provides common module API, `ffmpeg-webm.js` is the default module.
+ffmpeg.js provides common module API, `ffmpeg-webm.js` is the default module. Add its name after the slash if you need another build, e.g. `require("ffmpeg.js/ffmpeg-mp4.js")`.
 
 ```js
 var ffmpeg = require("ffmpeg.js");
