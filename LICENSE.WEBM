@@ -53,9 +53,8 @@ https://datatracker.ietf.org/ipr/1526/
 
 This software uses code of FreeType <http://www.freetype.org/> licensed under
 the FreeType Project LICENSE
-<https://github.com/juj/emscripten-freetype/blob/master/docs/FTL.TXT>
-and its source can be downloaded here
-<https://github.com/juj/emscripten-freetype>.
+<http://git.savannah.gnu.org/cgit/freetype/freetype2.git/tree/docs/FTL.TXT>
+and its source can be downloaded here <http://www.freetype.org/download.html>.
 
 ==============================================================================
 

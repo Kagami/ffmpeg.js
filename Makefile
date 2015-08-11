@@ -94,6 +94,8 @@ build/freetype/builds/unix/configure:
 # that: now it probably won't be possible to build it on x86.
 build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
 	cd build/freetype && \
+	git reset --hard && \
+	patch -p1 < ../freetype-asmjs.patch && \
 	emconfigure ./configure \
 		CFLAGS="-Wno-warn-absolute-paths" \
 		--prefix="$$(pwd)/dist" \

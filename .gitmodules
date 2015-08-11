@@ -10,10 +10,6 @@
 	path = build/libass
 	url = https://github.com/libass/libass.git
 	ignore = dirty
-[submodule "build/freetype"]
-	path = build/freetype
-	url = https://github.com/juj/emscripten-freetype.git
-	ignore = dirty
 [submodule "build/fribidi"]
 	path = build/fribidi
 	url = https://github.com/behdad/fribidi.git
@@ -33,4 +29,8 @@
 [submodule "build/ffmpeg-mp4"]
 	path = build/ffmpeg-mp4
 	url = git://source.ffmpeg.org/ffmpeg.git
+	ignore = dirty
+[submodule "build/freetype"]
+	path = build/freetype
+	url = git://git.sv.gnu.org/freetype/freetype2.git
 	ignore = dirty
