@@ -87,21 +87,20 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 build/freetype/builds/unix/configure:
 	cd build/freetype && ./autogen.sh
 
-# TODO(Kagami): Optimized build? It seems to be broken:
-# <https://github.com/kripken/emscripten/issues/3576>.
 # XXX(Kagami): host/build flags are used to enable cross-compiling
 # (values must differ) but there should be some better way to achieve
-# that: now it probably won't be possible to build it on x86.
+# that: it probably isn't possible to build on x86 now.
 build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
 	cd build/freetype && \
 	git reset --hard && \
 	patch -p1 < ../freetype-asmjs.patch && \
 	emconfigure ./configure \
-		CFLAGS="-Wno-warn-absolute-paths" \
+		CFLAGS="-O3 -Wno-warn-absolute-paths" \
 		--prefix="$$(pwd)/dist" \
 		--host=x86-none-linux \
 		--build=x86_64 \
 		--disable-static \
+		\
 		--without-zlib \
 		--without-bzip2 \
 		--without-png \
@@ -177,6 +176,7 @@ build/lame/dist/lib/libmp3lame.so:
 		--prefix="$$(pwd)/dist" \
 		--host=x86-none-linux \
 		--disable-static \
+		\
 		--disable-gtktest \
 		--disable-analyzer-hooks \
 		--disable-decoder \
@@ -198,6 +198,7 @@ build/x264/dist/lib/libx264.so:
 		--disable-opencl \
 		--disable-thread \
 		--disable-asm \
+		\
 		--disable-avs \
 		--disable-swscale \
 		--disable-lavf \
