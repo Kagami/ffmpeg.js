@@ -1,4 +1,7 @@
+var __ffmpegjs_utf8ToStr;
+
 function __ffmpegjs(__ffmpegjs_opts) {
+  __ffmpegjs_utf8ToStr = UTF8ArrayToString;
   __ffmpegjs_opts = __ffmpegjs_opts || {};
   var __ffmpegjs_return;
   var Module = {};

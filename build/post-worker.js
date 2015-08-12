@@ -4,16 +4,17 @@
 var __ffmpegjs_running = false;
 
 self.onmessage = function(e) {
-  // This might work not so fast in case of fast printing.
   function makeOutHandler(cb) {
-    var buf = ""
+    var buf = [];
     return function(ch, exit) {
-      if (exit && buf) return cb(buf);
+      if (exit && buf.length) return cb(__ffmpegjs_utf8ToStr(buf, 0));
       if (ch === 10 || ch === 13) {
-        cb(buf);
-        buf = "";
-      } else {
-        buf += String.fromCharCode(ch);
+        cb(__ffmpegjs_utf8ToStr(buf, 0));
+        buf = [];
+      } else if (ch !== 0) {
+        // See <https://github.com/kripken/emscripten/blob/1.34.4/
+        // src/library_tty.js#L146>.
+        buf.push(ch);
       }
     };
   }
