@@ -6,6 +6,19 @@ function __ffmpegjs(__ffmpegjs_opts) {
   var __ffmpegjs_return;
   var Module = {};
 
+  function __ffmpegjs_toU8(data) {
+    if (Array.isArray(data) || data instanceof ArrayBuffer) {
+      data = new Uint8Array(data);
+    } else if (!data) {
+      // `null` for empty files.
+      data = new Uint8Array(0);
+    } else if (!(data instanceof Uint8Array)) {
+      // Avoid unnecessary copying.
+      data = new Uint8Array(data.buffer);
+    }
+    return data;
+  }
+
   Object.keys(__ffmpegjs_opts).forEach(function(key) {
     if (key != "mounts" && key != "MEMFS") {
       Module[key] = __ffmpegjs_opts[key];
@@ -44,15 +57,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
         throw new Error("Bad file name");
       }
       var fd = FS.open(file["name"], "w+");
-      var data = file["data"];
-      // `FS.write` accepts only `Uint8Array`, so we do conversion here
-      // to simplify our API. It will work with plain `Array` too.
-      if (ArrayBuffer["isView"](data)) {
-        // Avoid unnecessary copying.
-        if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
-      } else {
-        data = new Uint8Array(data);
-      }
+      var data = __ffmpegjs_toU8(file["data"]);
       FS.write(fd, data, 0, data.length);
       FS.close(fd);
     });
@@ -100,15 +105,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
     var outFiles = listFiles("/work").filter(function(file) {
       return !inFiles.has(file.name);
     }).map(function(file) {
-      var data = file.contents;
-      // library_memfs will use `Array` for newly created files (see
-      // settings.js, MEMFS_APPEND_TO_TYPED_ARRAYS), so convert them
-      // back to typed arrays to simplify API.
-      if (ArrayBuffer["isView"](data)) {
-        if (!(data instanceof Uint8Array)) data = new Uint8Array(data.buffer);
-      } else {
-        data = new Uint8Array(data || []);
-      }
+      var data = __ffmpegjs_toU8(file.contents);
       return {"name": file.name, "data": data};
     });
     __ffmpegjs_return = {"MEMFS": outFiles};
