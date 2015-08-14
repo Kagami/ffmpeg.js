@@ -6,11 +6,11 @@ PRE_JS = build/pre.js
 POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
-COMMON_DEMUXERS = matroska avi mov concat
+COMMON_DEMUXERS = matroska avi mov flv mpegvideo concat
 COMMON_DECODERS = \
-	vp8 vp9 \
+	vp8 vp9 theora \
 	vorbis opus \
-	mpeg4 h264 \
+	mpeg2video mpeg4 h264 hevc \
 	mp3 ac3 aac \
 	ass ssa srt webvtt
 
