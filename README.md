@@ -92,7 +92,7 @@ This works in Browser as is, use e.g. [webworker-threads](https://github.com/aud
 
 ### Files
 
-Empscripten has 3 types of file systems: [MEMFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#memfs), [NODEFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#nodefs) and [IDBFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs). ffmpeg.js uses MEMFS to store the input/output files in FFmpeg's working directory. You need to pass *Array* of *Object* to `MEMFS` option with the following keys:
+Empscripten supports several types of [file systems](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#file-systems). ffmpeg.js uses [MEMFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#memfs) to store the input/output files in FFmpeg's working directory. You need to pass *Array* of *Object* to `MEMFS` option with the following keys:
 * **name** *(String)* - File name, can't contain slashes.
 * **data** *(ArrayBuffer/ArrayBufferView/Array)* - File data.
 
@@ -114,8 +114,8 @@ var out = result.MEMFS[0];
 fs.writeFileSync(out.name, Buffer(out.data));
 ```
 
-You can also mount NODEFS and IDBFS filesystem by passing *Array* of *Object* to `mounts` option with the following keys:
-* **type** *(String)* - `NODEFS` or `IDBFS`.
+You can also mount other FS by passing *Array* of *Object* to `mounts` option with the following keys:
+* **type** *(String)* - Name of the file system.
 * **opts** *(Object)* - Underlying file system options.
 * **mountpoint** *(String)* - Mount path, must start with a slash, must not contain other slashes and also the following paths are blacklisted: `/tmp`, `/home`, `/dev`, `/work`. Mount directory will be created automatically before mount.
 
