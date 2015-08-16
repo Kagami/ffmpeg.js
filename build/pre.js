@@ -32,6 +32,8 @@ function __ffmpegjs(__ffmpegjs_opts) {
         fs = NODEFS;
       } else if (mount["type"] == "IDBFS") {
         fs = IDBFS;
+      } else if (mount["type"] == "WORKERFS") {
+        fs = WORKERFS;
       } else {
         throw new Error("Bad mount type");
       }
