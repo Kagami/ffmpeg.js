@@ -6,6 +6,7 @@ PRE_JS = build/pre.js
 POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
+COMMON_FILTERS = aresample scale crop
 COMMON_DEMUXERS = matroska avi mov flv mpegvideo concat
 COMMON_DECODERS = \
 	vp8 vp9 theora \
@@ -238,6 +239,7 @@ FFMPEG_COMMON_ARGS = \
 	--enable-avformat \
 	--enable-avutil \
 	--enable-swresample \
+	--enable-swscale \
 	--enable-avfilter \
 	--disable-network \
 	--disable-d3d11va \
@@ -248,7 +250,7 @@ FFMPEG_COMMON_ARGS = \
 	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
 	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
 	--enable-protocol=file \
-	--enable-filter=aresample \
+	$(addprefix --enable-filter=,$(COMMON_FILTERS)) \
 	--disable-bzlib \
 	--disable-iconv \
 	--disable-libxcb \
