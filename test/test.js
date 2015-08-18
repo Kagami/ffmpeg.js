@@ -368,9 +368,8 @@ describe("MP4", function() {
     });
   });
 
-  // FIXME(Kagami): webworker-threads doesn't like two workers spawned
-  // at the same time and hangs. Seems like we need to search for
-  // different node Worker library.
+  // TODO(Kagami): Test worker builds with Karma. node-webworker-threads
+  // has too many bugs.
   describe.skip("Worker", function() {
     it("should print version to stdout", function(done) {
       var stdout = "";
