@@ -15,8 +15,8 @@ COMMON_DECODERS = \
 	mp3 ac3 aac \
 	ass ssa srt webvtt
 
-WEBM_MUXERS = webm ogg null
-WEBM_ENCODERS = libvpx_vp8 libopus
+WEBM_MUXERS = webm ogg null image2
+WEBM_ENCODERS = libvpx_vp8 libopus mjpeg
 FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
 LIBASS_PC_PATH = ../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
 FFMPEG_WEBM_PC_PATH_ = \
