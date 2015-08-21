@@ -27,14 +27,8 @@ function __ffmpegjs(__ffmpegjs_opts) {
 
   Module["preRun"] = function() {
     (__ffmpegjs_opts["mounts"] || []).forEach(function(mount) {
-      var fs;
-      if (mount["type"] == "NODEFS") {
-        fs = NODEFS;
-      } else if (mount["type"] == "IDBFS") {
-        fs = IDBFS;
-      } else if (mount["type"] == "WORKERFS") {
-        fs = WORKERFS;
-      } else {
+      var fs = FS.filesystems[mount["type"]];
+      if (!fs) {
         throw new Error("Bad mount type");
       }
       var mountpoint = mount["mountpoint"];
