@@ -171,8 +171,6 @@ build/libvpx/dist/lib/libvpx.so:
 
 build/lame/dist/lib/libmp3lame.so:
 	cd build/lame && \
-	git reset --hard && \
-	patch -p1 < ../lame-configure.patch && \
 	emconfigure ./configure \
 		--prefix="$$(pwd)/dist" \
 		--host=x86-none-linux \
