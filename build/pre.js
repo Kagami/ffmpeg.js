@@ -35,10 +35,12 @@ function __ffmpegjs(__ffmpegjs_opts) {
       // NOTE(Kagami): Subdirs are not allowed in the paths to simplify
       // things and avoid ".." escapes.
       if (!mountpoint.match(/^\/[^\/]+$/) ||
-          mountpoint == "/tmp" ||
-          mountpoint == "/home" ||
-          mountpoint == "/dev" ||
-          mountpoint == "/work") {
+          mountpoint === "/." ||
+          mountpoint === "/.." ||
+          mountpoint === "/tmp" ||
+          mountpoint === "/home" ||
+          mountpoint === "/dev" ||
+          mountpoint === "/work") {
         throw new Error("Bad mount point");
       }
       FS.mkdir(mountpoint);
