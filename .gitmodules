@@ -4,7 +4,7 @@
 	ignore = dirty
 [submodule "build/opus"]
 	path = build/opus
-	url = git://git.opus-codec.org/opus.git
+	url = https://github.com/xiph/opus.git
 	ignore = dirty
 [submodule "build/libass"]
 	path = build/libass
