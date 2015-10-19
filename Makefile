@@ -96,7 +96,7 @@ build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
 	git reset --hard && \
 	patch -p1 < ../freetype-asmjs.patch && \
 	emconfigure ./configure \
-		CFLAGS="-O3 -Wno-warn-absolute-paths" \
+		CFLAGS="-O3" \
 		--prefix="$$(pwd)/dist" \
 		--host=x86-none-linux \
 		--build=x86_64 \
@@ -134,7 +134,7 @@ build/libass/configure:
 build/libass/dist/lib/libass.so: build/libass/configure $(LIBASS_DEPS)
 	cd build/libass && \
 	EM_PKG_CONFIG_PATH=$(LIBASS_PC_PATH) emconfigure ./configure \
-		CFLAGS="-O3 -Wno-warn-absolute-paths" \
+		CFLAGS="-O3" \
 		--prefix="$$(pwd)/dist" \
 		--disable-static \
 		--disable-enca \
@@ -151,7 +151,6 @@ build/libvpx/dist/lib/libvpx.so:
 	emconfigure ./configure \
 		--prefix="$$(pwd)/dist" \
 		--target=generic-gnu \
-		--extra-cflags="-Wno-warn-absolute-paths" \
 		--disable-dependency-tracking \
 		--disable-multithread \
 		--disable-runtime-cpu-detect \
@@ -272,7 +271,7 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 		--enable-libass \
 		--enable-libopus \
 		--enable-libvpx \
-		--extra-cflags="-Wno-warn-absolute-paths -I../libvpx/dist/include" \
+		--extra-cflags="-I../libvpx/dist/include" \
 		--extra-ldflags="-L../libvpx/dist/lib" \
 		&& \
 	emmake make -j8 && \
@@ -289,7 +288,7 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 		--enable-gpl \
 		--enable-libmp3lame \
 		--enable-libx264 \
-		--extra-cflags="-Wno-warn-absolute-paths -I../lame/dist/include" \
+		--extra-cflags="-I../lame/dist/include" \
 		--extra-ldflags="-L../lame/dist/lib" \
 		&& \
 	emmake make -j8 && \
