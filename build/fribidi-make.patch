@@ -1,0 +1,22 @@
+diff --git a/Makefile.am b/Makefile.am
+index 66f4a4e..bd3d141 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -11,7 +11,7 @@
+ ACLOCAL_AMFLAGS = -I m4
+ 
+ ## The order of subdirs is important, don't change without a reason.
+-SUBDIRS = gen.tab charset lib bin doc test
++SUBDIRS = gen.tab charset lib
+ 
+ EXTRA_DIST = bootstrap ChangeLog.old
+ 
+diff --git a/gen.tab/Makefile.am b/gen.tab/Makefile.am
+index 3b185a9..97df2b5 100644
+--- a/gen.tab/Makefile.am
++++ b/gen.tab/Makefile.am
+@@ -1,3 +1,4 @@
++CC = gcc
+ EXTRA_PROGRAMS = \
+ 		gen-unicode-version \
+ 		gen-bidi-type-tab \

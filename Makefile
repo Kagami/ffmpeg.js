@@ -113,9 +113,10 @@ build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
 build/fribidi/configure:
 	cd build/fribidi && ./bootstrap
 
-# TODO(Kagami): Report cross-compile hacks to upstream.
 build/fribidi/dist/lib/libfribidi.so: build/fribidi/configure
 	cd build/fribidi && \
+	git reset --hard && \
+	patch -p1 < ../fribidi-make.patch && \
 	emconfigure ./configure \
 		CFLAGS=-O3 \
 		NM=llvm-nm \
@@ -124,8 +125,6 @@ build/fribidi/dist/lib/libfribidi.so: build/fribidi/configure
 		--disable-debug \
 		--without-glib \
 		&& \
-	sed -i 's/^SUBDIRS =.*/SUBDIRS=gen.tab charset lib/' Makefile && \
-	sed -i 's/^CC =.*/CC=gcc/' gen.tab/Makefile && \
 	emmake make -j8 && \
 	emmake make install
 
