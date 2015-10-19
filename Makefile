@@ -165,6 +165,7 @@ build/libvpx/dist/lib/libvpx.so:
 		--disable-libyuv \
 		--disable-vp8-decoder \
 		--disable-vp9 \
+		--disable-vp10 \
 		&& \
 	emmake make -j8 && \
 	emmake make install
