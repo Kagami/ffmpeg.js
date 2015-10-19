@@ -139,6 +139,7 @@ build/libass/dist/lib/libass.so: build/libass/configure $(LIBASS_DEPS)
 		--disable-static \
 		--disable-enca \
 		--disable-fontconfig \
+		--disable-require-system-font-provider \
 		--disable-harfbuzz \
 		--disable-asm \
 		&& \
