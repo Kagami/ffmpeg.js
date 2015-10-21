@@ -1,6 +1,6 @@
 {
   "name": "ffmpeg.js",
-  "version": "2.8.9000",
+  "version": "2.8.9001",
   "description": "Port of FFmpeg with Emscripten",
   "main": "ffmpeg-webm.js",
   "scripts": {
