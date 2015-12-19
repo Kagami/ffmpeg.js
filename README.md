@@ -11,6 +11,8 @@ Currently available builds (additional builds may be added in future):
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
 * `ffmpeg-mp4.js` - MP4 encoding (H.264 & MP3 encoders, popular decoders).
 * `ffmpeg-worker-mp4.js` - Web Worker version of `ffmpeg-mp4.js`.
+* `ffmpeg-mp3.js` - MP3 encoding (MP3 encoders, popular decoders).
+* `ffmpeg-worker-mp3.js` - Web Worker version of `ffmpeg-mp3.js`.
 
 Note: only NPM releases contain abovementioned files.
 
@@ -162,3 +164,12 @@ Included libraries:
 * LAME [licensed under LGPL](https://github.com/rbrito/lame/blob/origin/COPYING).
 
 See [LICENSE.MP4](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.MP4) for the full text of software licenses used in this build.
+
+### MP3 build
+
+This build uses LGPL version of FFmpeg and thus available under LGPL 2.1 or later. See [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
+
+Included libraries:
+* LAME [licensed under LGPL](https://github.com/rbrito/lame/blob/origin/COPYING).
+
+See [LICENSE.MP3](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.MP3) for the full text of software licenses used in this build.

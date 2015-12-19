@@ -41,14 +41,21 @@ MP4_SHARED_DEPS = \
 	build/lame/dist/lib/libmp3lame.so \
 	build/x264/dist/lib/libx264.so
 
-all: webm mp4
+MP3_MUXERS = mp3 null
+MP3_ENCODERS = libmp3lame
+FFMPEG_MP3_BC = build/ffmpeg-mp3/ffmpeg.bc
+MP3_SHARED_DEPS = build/lame/dist/lib/libmp3lame.so
+
+all: webm mp4 mp3
 webm: ffmpeg-webm.js ffmpeg-worker-webm.js
 mp4: ffmpeg-mp4.js ffmpeg-worker-mp4.js
+mp3: ffmpeg-mp3.js ffmpeg-worker-mp3.js
 
 clean: clean-js \
 	clean-freetype clean-fribidi clean-libass \
 	clean-opus clean-libvpx clean-ffmpeg-webm \
-	clean-lame clean-x264 clean-ffmpeg-mp4
+	clean-lame clean-x264 clean-ffmpeg-mp4 \
+	clean-ffmpeg-mp3
 clean-js:
 	rm -f -- ffmpeg*.js
 clean-opus:
@@ -69,6 +76,8 @@ clean-ffmpeg-webm:
 	-cd build/ffmpeg-webm && rm -f ffmpeg.bc && make clean
 clean-ffmpeg-mp4:
 	-cd build/ffmpeg-mp4 && rm -f ffmpeg.bc && make clean
+clean-ffmpeg-mp3:
+	-cd build/ffmpeg-mp3 && rm -f ffmpeg.bc && make clean
 
 build/opus/configure:
 	cd build/opus && ./autogen.sh
@@ -295,6 +304,21 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	emmake make -j8 && \
 	cp ffmpeg ffmpeg.bc
 
+build/ffmpeg-mp3/ffmpeg.bc: $(MP3_SHARED_DEPS)
+	cd build/ffmpeg-mp3 && \
+	git reset --hard && \
+	patch -p1 < ../ffmpeg-disable-monotonic.patch && \
+	emconfigure ./configure \
+		$(FFMPEG_COMMON_ARGS) \
+		$(addprefix --enable-encoder=,$(MP3_ENCODERS)) \
+		$(addprefix --enable-muxer=,$(MP3_MUXERS)) \
+		--enable-libmp3lame \
+		--extra-cflags="-I../lame/dist/include" \
+		--extra-ldflags="-L../lame/dist/lib" \
+		&& \
+	emmake make -j8 && \
+	cp ffmpeg ffmpeg.bc
+
 # Compile bitcode to JavaScript.
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
@@ -324,5 +348,15 @@ ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_SYNC)
 
 ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
+		--post-js $(POST_JS_WORKER) \
+		$(EMCC_COMMON_ARGS)
+
+ffmpeg-mp3.js: $(FFMPEG_MP3_BC) $(PRE_JS) $(POST_JS_SYNC)
+	emcc $(FFMPEG_MP3_BC) $(MP3_SHARED_DEPS) \
+		--post-js $(POST_JS_SYNC) \
+		$(EMCC_COMMON_ARGS)
+
+ffmpeg-worker-mp3.js: $(FFMPEG_MP3_BC) $(PRE_JS) $(POST_JS_WORKER)
+	emcc $(FFMPEG_MP3_BC) $(MP3_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_ARGS)
