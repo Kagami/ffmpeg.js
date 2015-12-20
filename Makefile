@@ -263,7 +263,6 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-default-font.patch && \
 	patch -p1 < ../ffmpeg-disable-monotonic.patch && \
-	patch -p1 < ../ffmpeg-fix-libvpx-build.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
