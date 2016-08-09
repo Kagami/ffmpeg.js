@@ -82,6 +82,9 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 		--disable-static \
 		--disable-doc \
 		--disable-extra-programs \
+		--disable-asm \
+		--disable-rtcd \
+		--disable-intrinsics \
 		&& \
 	emmake make -j8 && \
 	emmake make install
@@ -165,7 +168,6 @@ build/libvpx/dist/lib/libvpx.so:
 		--disable-libyuv \
 		--disable-vp8-decoder \
 		--disable-vp9 \
-		--disable-vp10 \
 		&& \
 	emmake make -j8 && \
 	emmake make install
@@ -300,7 +302,6 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 # for simple tests and 32M tends to run slower than 64M.
 EMCC_COMMON_ARGS = \
 	--closure 1 \
-	-s NODE_STDOUT_FLUSH_WORKAROUND=0 \
 	-s TOTAL_MEMORY=67108864 \
 	-s OUTLINING_LIMIT=20000 \
 	-O3 --memory-init-file 0 \
