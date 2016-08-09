@@ -25,6 +25,6 @@
   "devDependencies": {
     "chai": "*",
     "mocha": "*",
-    "webworker-threads": "^0.6.2"
+    "webworker-threads": "^0.7.8"
   }
 }
