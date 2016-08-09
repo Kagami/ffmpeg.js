@@ -79,23 +79,6 @@ function __ffmpegjs(__ffmpegjs_opts) {
   };
 
   Module["postRun"] = function() {
-    var SimpleSet = function() {
-      var obj = Object.create(null);
-      var hasProto = false;
-      return {
-        has: function(prop) {
-          return prop === "__proto__" ? hasProto : prop in obj;
-        },
-        set: function(prop) {
-          if (prop === "__proto__") {
-            hasProto = true;
-          } else {
-            obj[prop] = true;
-          }
-        },
-      };
-    };
-
     // NOTE(Kagami): Search for files only in working directory, one
     // level depth. Since FFmpeg shouldn't normally create
     // subdirectories, it should be enough.
@@ -113,12 +96,12 @@ function __ffmpegjs(__ffmpegjs_opts) {
       });
     }
 
-    var inFiles = SimpleSet();
+    var inFiles = Object.create(null);
     (__ffmpegjs_opts["MEMFS"] || []).forEach(function(file) {
-      inFiles.set(file["name"]);
+      inFiles[file.name] = null;
     });
     var outFiles = listFiles("/work").filter(function(file) {
-      return !inFiles.has(file.name);
+      return !(file.name in inFiles);
     }).map(function(file) {
       var data = __ffmpegjs_toU8(file.contents);
       return {"name": file.name, "data": data};
