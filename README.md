@@ -9,7 +9,7 @@ This library provides FFmpeg builds ported to JavaScript using [Emscripten proje
 Currently available builds (additional builds may be added in future):
 * `ffmpeg-webm.js` - WebM encoding (VP8 & Opus encoders, popular decoders).
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
-* `ffmpeg-mp4.js` - MP4 encoding (H.264 & MP3 encoders, popular decoders).
+* `ffmpeg-mp4.js` - MP4 encoding (H.264 & AAC & MP3 encoders, popular decoders).
 * `ffmpeg-worker-mp4.js` - Web Worker version of `ffmpeg-mp4.js`.
 
 Note: only NPM releases contain abovementioned files.
@@ -155,7 +155,7 @@ See [LICENSE.WEBM](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.WEBM)
 
 ### MP4 build
 
-This build uses GPL version of FFmpeg and thus available under GPL 2.0. It also includes patent encumbered H.264 and MP3 encoders. Make sure to contact lawyer before using it in your country.
+This build uses GPL version of FFmpeg and thus available under GPL 2.0. It also includes patent encumbered H.264, AAC and MP3 encoders. Make sure to contact lawyer before using it in your country.
 
 Included libraries:
 * x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING;h=d60c31a97a544b53039088d14fe9114583c0efc3;hb=HEAD).
