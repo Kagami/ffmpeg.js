@@ -14,23 +14,23 @@
 	path = build/fribidi
 	url = https://github.com/behdad/fribidi.git
 	ignore = dirty
-[submodule "build/ffmpeg-webm"]
-	path = build/ffmpeg-webm
-	url = git://source.ffmpeg.org/ffmpeg.git
-	ignore = dirty
 [submodule "build/lame"]
 	path = build/lame
 	url = https://github.com/rbrito/lame.git
 	ignore = dirty
 [submodule "build/x264"]
 	path = build/x264
-	url = git://git.videolan.org/x264.git
-	ignore = dirty
-[submodule "build/ffmpeg-mp4"]
-	path = build/ffmpeg-mp4
-	url = git://source.ffmpeg.org/ffmpeg.git
+	url = https://git.videolan.org/git/x264.git
 	ignore = dirty
 [submodule "build/freetype"]
 	path = build/freetype
 	url = git://git.sv.gnu.org/freetype/freetype2.git
+	ignore = dirty
+[submodule "build/ffmpeg-webm"]
+	path = build/ffmpeg-webm
+	url = https://git.ffmpeg.org/ffmpeg.git
+	ignore = dirty
+[submodule "build/ffmpeg-mp4"]
+	path = build/ffmpeg-mp4
+	url = https://git.ffmpeg.org/ffmpeg.git
 	ignore = dirty
