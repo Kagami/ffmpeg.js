@@ -145,7 +145,7 @@ Own library code licensed under LGPL 2.1 or later.
 This build uses LGPL version of FFmpeg and thus available under LGPL 2.1 or later. See [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
 
 Included libraries:
-* libopus [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING;h=9c739c34a3a9dd39729587eb6b1f9dd4344e58f6;hb=HEAD).
+* libopus [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING).
 * freetype [licensed under FreeType Project LICENSE](http://git.savannah.gnu.org/cgit/freetype/freetype2.git/tree/docs/FTL.TXT).
 * fribidi [licensed under LGPL](https://github.com/behdad/fribidi/blob/master/COPYING).
 * libass [licensed under ISC](https://github.com/libass/libass/blob/master/COPYING).
@@ -158,7 +158,7 @@ See [LICENSE.WEBM](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.WEBM)
 This build uses GPL version of FFmpeg and thus available under GPL 2.0. It also includes patent encumbered H.264, AAC and MP3 encoders. Make sure to contact lawyer before using it in your country.
 
 Included libraries:
-* x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING;h=d60c31a97a544b53039088d14fe9114583c0efc3;hb=HEAD).
+* x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING).
 * LAME [licensed under LGPL](https://github.com/rbrito/lame/blob/origin/COPYING).
 
 See [LICENSE.MP4](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.MP4) for the full text of software licenses used in this build.
