@@ -25,6 +25,23 @@ function __ffmpegjs(__ffmpegjs_opts) {
     }
   });
 
+  // XXX(Kagami): Prevent Emscripten to call `process.exit` at the end of
+  // execution on Node.
+  // There is no longer `NODE_STDOUT_FLUSH_WORKAROUND` and it seems to
+  // be the best way to accomplish that.
+  Module["preInit"] = function() {
+    if (ENVIRONMENT_IS_NODE) {
+      exit = Module["exit"] = function(status) {
+        ABORT = true;
+        EXITSTATUS = status;
+        STACKTOP = initialStackTop;
+        exitRuntime();
+        if (Module["onExit"]) Module["onExit"](status);
+        throw new ExitStatus(status);
+      };
+    }
+  };
+
   Module["preRun"] = function() {
     (__ffmpegjs_opts["mounts"] || []).forEach(function(mount) {
       var fs = FS.filesystems[mount["type"]];

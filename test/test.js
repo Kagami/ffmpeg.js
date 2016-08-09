@@ -6,7 +6,7 @@ var Worker = require("webworker-threads").Worker;
 var ffmpeg_webm = require("../ffmpeg-webm");
 var ffmpeg_mp4 = require("../ffmpeg-mp4");
 
-function noop() {};
+function noop() {}
 var testDataPath = path.join(__dirname, "test.webm");
 var testData = new Uint8Array(fs.readFileSync(testDataPath));
 // Mute uncaughtException warnings.
@@ -281,7 +281,8 @@ describe("WebM", function() {
           expect(stderr).to.be.empty;
           expect(msg.data).to.equal(0);
           expect(stdout).to.match(/^ffmpeg version /);
-          worker.terminate();
+          // FIXME(Kagami): This cause segfault on Node 6.x.
+          // worker.terminate();
           done();
           break;
         }
