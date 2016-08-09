@@ -369,6 +369,25 @@ describe("MP4", function() {
     });
   });
 
+  it("should encode test file to MP4/AAC at MEMFS", function() {
+    var res = ffmpeg_mp4({
+      arguments: [
+        "-i", "test.webm",
+        "-vn",
+        "-frames:a", "1", "-c:a", "aac",
+        "out.mp4",
+      ],
+      stdin: noop,
+      print: noop,
+      printErr: noop,
+      MEMFS: [{name: "test.webm", data: testData}],
+    });
+    expect(res.MEMFS).to.have.length(1);
+    var file = res.MEMFS[0];
+    expect(file.name).to.equal("out.mp4");
+    expect(file.data.length).to.be.above(0);
+  });
+
   // TODO(Kagami): Test worker builds with Karma. node-webworker-threads
   // has too many bugs.
   describe.skip("Worker", function() {
