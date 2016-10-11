@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 87aef96..d8f614d 100755
+--- a/configure
++++ b/configure
+@@ -15680,7 +15680,7 @@ $as_echo "#define USE_FAST_LOG 1" >>confdefs.h
+ 	;;
+ *86)
+ 	CPUTYPE="i386"
+-	if test $ac_cv_header_xmmintrin_h = yes ; then
++	if false ; then
+ 		WITH_XMM=yes
+ 		WITH_VECTOR=yes
+ 	fi
