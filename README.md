@@ -80,7 +80,7 @@ worker.onmessage = function(e) {
     stderr += msg.data + "\n";
     break;
   case "exit":
-    console.log("Process exited with code " + code);
+    console.log("Process exited with code " + msg.data);
     console.log(stdout);
     worker.terminate();
     break;
