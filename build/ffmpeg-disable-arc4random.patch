@@ -1,0 +1,16 @@
+diff --git a/libavutil/random_seed.c b/libavutil/random_seed.c
+index d1ded7b..8bf1c36 100644
+--- a/libavutil/random_seed.c
++++ b/libavutil/random_seed.c
+@@ -126,10 +126,6 @@ uint32_t av_get_random_seed(void)
+     }
+ #endif
+ 
+-#if HAVE_ARC4RANDOM
+-    return arc4random();
+-#endif
+-
+     if (read_random(&seed, "/dev/urandom") == sizeof(seed))
+         return seed;
+     if (read_random(&seed, "/dev/random")  == sizeof(seed))
+
