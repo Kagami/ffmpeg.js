@@ -24,7 +24,7 @@
 	ignore = dirty
 [submodule "build/freetype"]
 	path = build/freetype
-	url = git://git.sv.gnu.org/freetype/freetype2.git
+	url = https://git.savannah.gnu.org/git/freetype/freetype2.git
 	ignore = dirty
 [submodule "build/ffmpeg-webm"]
 	path = build/ffmpeg-webm
