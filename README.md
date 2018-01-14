@@ -51,14 +51,14 @@ Use e.g. [browserify](https://github.com/substack/node-browserify) in case of Br
 
 ### Via Web Worker
 
-ffmpeg.js also provides wrapper for main function with Web Worker interface to offload the work to different process. Worker sends the following messages:
+ffmpeg.js also provides wrapper for main function with Web Worker interface to offload the work to a different process. Worker sends the following messages:
 * `{type: "ready"}` - Worker loaded and ready to accept commands.
 * `{type: "run"}` - Worker started the job.
 * `{type: "stdout", data: "<line>"}` - FFmpeg printed to stdout.
 * `{type: "stderr", data: "<line>"}` - FFmpeg printed to stderr.
 * `{type: "exit", data: "<code>"}` - FFmpeg exited.
 * `{type: "done", data: "<result>"}` - Job finished with some result.
-* `{type: "error", data: "<error description>"}` - Error occured.
+* `{type: "error", data: "<error description>"}` - Error occurred.
 
 You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
