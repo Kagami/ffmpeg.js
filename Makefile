@@ -40,19 +40,19 @@ clean: clean-js \
 	clean-opus clean-libvpx clean-ffmpeg-webm \
 	clean-lame clean-x264 clean-ffmpeg-mp4
 clean-js:
-	rm -f -- ffmpeg*.js
+	rm -f ffmpeg*.js
 clean-opus:
-	-cd build/opus && rm -rf dist && make clean
+	cd build/opus && git clean -xdf
 clean-libvpx:
-	-cd build/libvpx && rm -rf dist && make clean
-clean-lame:
-	-cd build/lame && rm -rf dist && make clean
-clean-x264:
-	-cd build/x264 && rm -rf dist && make clean
+	cd build/libvpx && git clean -xdf
 clean-ffmpeg-webm:
-	-cd build/ffmpeg-webm && rm -f ffmpeg.bc && make clean
+	cd build/ffmpeg-webm && git clean -xdf
+clean-lame:
+	cd build/lame && git clean -xdf
+clean-x264:
+	cd build/x264 && git clean -xdf
 clean-ffmpeg-mp4:
-	-cd build/ffmpeg-mp4 && rm -f ffmpeg.bc && make clean
+	cd build/ffmpeg-mp4 && git clean -xdf
 
 build/opus/configure:
 	cd build/opus && ./autogen.sh
