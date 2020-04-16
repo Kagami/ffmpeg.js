@@ -144,8 +144,8 @@ wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.t
 tar xzvf emsdk-portable.tar.gz
 cd emsdk-portable
 ./emsdk update
-./emsdk install latest
-./emsdk activate latest
+./emsdk install node-8.9.1-64bit && ./emsdk install emscripten-1.35.0 && ./emsdk install clang-tag-e1.35.0-64bit
+./emsdk activate node-8.9.1-64bit && ./emsdk activate emscripten-1.35.0 && ./emsdk activate clang-tag-e1.35.0-64bit
 source ./emsdk_env.sh
 
 cd /root # or /home/whatever
