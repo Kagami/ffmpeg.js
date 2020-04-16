@@ -171,9 +171,6 @@ This build uses LGPL version of FFmpeg and thus available under LGPL 2.1 or late
 
 Included libraries:
 * libopus [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING).
-* freetype [licensed under FreeType Project LICENSE](http://git.savannah.gnu.org/cgit/freetype/freetype2.git/tree/docs/FTL.TXT).
-* fribidi [licensed under LGPL](https://github.com/behdad/fribidi/blob/master/COPYING).
-* libass [licensed under ISC](https://github.com/libass/libass/blob/master/COPYING).
 * libvpx [licensed under BSD](https://chromium.googlesource.com/webm/libvpx/+/master/LICENSE).
 
 See [LICENSE.WEBM](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.WEBM) for the full text of software licenses used in this build.

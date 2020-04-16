@@ -16,21 +16,11 @@ COMMON_DECODERS = \
 	mp3 ac3 aac \
 	ass ssa srt webvtt
 
-WEBM_MUXERS = webm ogg null image2
-WEBM_ENCODERS = libvpx_vp8 libopus mjpeg
+WEBM_MUXERS = webm ogg null
+WEBM_ENCODERS = libvpx_vp8 libopus
 FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
-LIBASS_PC_PATH = ../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
-FFMPEG_WEBM_PC_PATH_ = \
-	$(LIBASS_PC_PATH):\
-	../libass/dist/lib/pkgconfig:\
-	../opus/dist/lib/pkgconfig
-FFMPEG_WEBM_PC_PATH = $(subst : ,:,$(FFMPEG_WEBM_PC_PATH_))
-LIBASS_DEPS = \
-	build/fribidi/dist/lib/libfribidi.so \
-	build/freetype/dist/lib/libfreetype.so
+FFMPEG_WEBM_PC_PATH = ../opus/dist/lib/pkgconfig
 WEBM_SHARED_DEPS = \
-	$(LIBASS_DEPS) \
-	build/libass/dist/lib/libass.so \
 	build/opus/dist/lib/libopus.so \
 	build/libvpx/dist/lib/libvpx.so
 
@@ -47,19 +37,12 @@ webm: ffmpeg-webm.js ffmpeg-worker-webm.js
 mp4: ffmpeg-mp4.js ffmpeg-worker-mp4.js
 
 clean: clean-js \
-	clean-freetype clean-fribidi clean-libass \
 	clean-opus clean-libvpx clean-ffmpeg-webm \
 	clean-lame clean-x264 clean-ffmpeg-mp4
 clean-js:
 	rm -f -- ffmpeg*.js
 clean-opus:
 	-cd build/opus && rm -rf dist && make clean
-clean-freetype:
-	-cd build/freetype && rm -rf dist && make clean
-clean-fribidi:
-	-cd build/fribidi && rm -rf dist && make clean
-clean-libass:
-	-cd build/libass && rm -rf dist && make clean
 clean-libvpx:
 	-cd build/libvpx && rm -rf dist && make clean
 clean-lame:
@@ -85,67 +68,6 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 		--disable-asm \
 		--disable-rtcd \
 		--disable-intrinsics \
-		&& \
-	emmake make -j8 && \
-	emmake make install
-
-build/freetype/builds/unix/configure:
-	cd build/freetype && ./autogen.sh
-
-# XXX(Kagami): host/build flags are used to enable cross-compiling
-# (values must differ) but there should be some better way to achieve
-# that: it probably isn't possible to build on x86 now.
-build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
-	cd build/freetype && \
-	git reset --hard && \
-	patch -p1 < ../freetype-asmjs.patch && \
-	emconfigure ./configure \
-		CFLAGS="-O3" \
-		--prefix="$$(pwd)/dist" \
-		--host=x86-none-linux \
-		--build=x86_64 \
-		--disable-static \
-		\
-		--without-zlib \
-		--without-bzip2 \
-		--without-png \
-		--without-harfbuzz \
-		&& \
-	emmake make -j8 && \
-	emmake make install
-
-build/fribidi/configure:
-	cd build/fribidi && ./bootstrap
-
-build/fribidi/dist/lib/libfribidi.so: build/fribidi/configure
-	cd build/fribidi && \
-	git reset --hard && \
-	patch -p1 < ../fribidi-make.patch && \
-	emconfigure ./configure \
-		CFLAGS=-O3 \
-		NM=llvm-nm \
-		--prefix="$$(pwd)/dist" \
-		--disable-dependency-tracking \
-		--disable-debug \
-		--without-glib \
-		&& \
-	emmake make -j8 && \
-	emmake make install
-
-build/libass/configure:
-	cd build/libass && ./autogen.sh
-
-build/libass/dist/lib/libass.so: build/libass/configure $(LIBASS_DEPS)
-	cd build/libass && \
-	EM_PKG_CONFIG_PATH=$(LIBASS_PC_PATH) emconfigure ./configure \
-		CFLAGS="-O3" \
-		--prefix="$$(pwd)/dist" \
-		--disable-static \
-		--disable-enca \
-		--disable-fontconfig \
-		--disable-require-system-font-provider \
-		--disable-harfbuzz \
-		--disable-asm \
 		&& \
 	emmake make -j8 && \
 	emmake make install
@@ -267,14 +189,11 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	cd build/ffmpeg-webm && \
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-disable-arc4random.patch && \
-	patch -p1 < ../ffmpeg-default-font.patch && \
 	patch -p1 < ../ffmpeg-disable-monotonic.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
 		$(addprefix --enable-muxer=,$(WEBM_MUXERS)) \
-		--enable-filter=subtitles \
-		--enable-libass \
 		--enable-libopus \
 		--enable-libvpx \
 		--extra-cflags="-I../libvpx/dist/include" \
