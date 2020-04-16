@@ -69,7 +69,7 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 		--disable-rtcd \
 		--disable-intrinsics \
 		&& \
-	emmake make -j8 && \
+	emmake make -j && \
 	emmake make install
 
 build/libvpx/dist/lib/libvpx.so:
@@ -91,7 +91,7 @@ build/libvpx/dist/lib/libvpx.so:
 		--disable-vp8-decoder \
 		--disable-vp9 \
 		&& \
-	emmake make -j8 && \
+	emmake make -j && \
 	emmake make install
 
 build/lame/dist/lib/libmp3lame.so:
@@ -108,7 +108,7 @@ build/lame/dist/lib/libmp3lame.so:
 		--disable-decoder \
 		--disable-frontend \
 		&& \
-	emmake make -j8 && \
+	emmake make -j && \
 	emmake make install
 
 build/x264/dist/lib/libx264.so:
@@ -132,7 +132,7 @@ build/x264/dist/lib/libx264.so:
 		--disable-gpac \
 		--disable-lsmash \
 		&& \
-	emmake make -j8 && \
+	emmake make -j && \
 	emmake make install
 
 # TODO(Kagami): Emscripten documentation recommends to always use shared
@@ -199,7 +199,7 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 		--extra-cflags="-I../libvpx/dist/include" \
 		--extra-ldflags="-L../libvpx/dist/lib" \
 		&& \
-	emmake make -j8 && \
+	emmake make -j && \
 	cp ffmpeg ffmpeg.bc
 
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
@@ -217,7 +217,7 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 		--extra-cflags="-I../lame/dist/include" \
 		--extra-ldflags="-L../lame/dist/lib" \
 		&& \
-	emmake make -j8 && \
+	emmake make -j && \
 	cp ffmpeg ffmpeg.bc
 
 # Compile bitcode to JavaScript.
