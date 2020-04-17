@@ -5,7 +5,7 @@ var __ffmpegjs_running = false;
 
 // Shim for nodejs
 if (typeof self === "undefined") {
-  self = require("worker_threads").parentPort;
+  self = require("worker_threads")["parentPort"];
 }
 
 self.onmessage = function(e) {

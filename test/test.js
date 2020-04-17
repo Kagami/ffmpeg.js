@@ -214,7 +214,7 @@ describe("WebM", function() {
       expect(res.MEMFS[0].data.length).to.equal(0);
     });
 
-    it.skip("should have subtitles filter", function() {
+    /*it("should have subtitles filter", function() {
       var code;
       var res = ffmpeg_webm({
         arguments: [
@@ -230,7 +230,7 @@ describe("WebM", function() {
         MEMFS: [{name: "test.webm", data: testData}],
       });
       expect(code).to.equal(0);
-    });
+    });*/
 
     it("should have Ogg muxer", function() {
       var res = ffmpeg_webm({
@@ -252,7 +252,7 @@ describe("WebM", function() {
       expect(file.data).to.be.an.instanceof(Uint8Array);
     });
 
-    it.skip("should encode sequence of frames to WebM", function() {
+    /*it("should encode sequence of frames to WebM", function() {
       var res = ffmpeg_webm({
         // FIXME(Kagami): pattern_type=sequence doesn't work with NODEFS
         // for some reason.
@@ -269,7 +269,7 @@ describe("WebM", function() {
       var file = res.MEMFS[0];
       expect(file.name).to.equal("out.webm");
       expect(file.data.length).to.be.above(0);
-    });
+    });*/
   });
 
   describe("Worker", function() {
