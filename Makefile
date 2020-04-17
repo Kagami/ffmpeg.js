@@ -97,11 +97,11 @@ build/libvpx/dist/lib/libvpx.so:
 	emmake make install
 
 build/lame/dist/lib/libmp3lame.so:
-	cd build/lame && \
+	cd build/lame/lame && \
 	git reset --hard && \
-	patch -p1 < ../lame-configure.patch && \
+	patch -p2 < ../../lame-configure.patch && \
 	emconfigure ./configure \
-		--prefix="$$(pwd)/dist" \
+		--prefix="$$(pwd)/../dist" \
 		--host=x86-none-linux \
 		--disable-static \
 		\
