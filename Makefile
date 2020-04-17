@@ -7,14 +7,12 @@ POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
 COMMON_FILTERS = aresample scale crop overlay
-COMMON_DEMUXERS = matroska ogg avi mov flv mpegps image2 mp3 concat
+COMMON_DEMUXERS = matroska ogg avi mov flv mpegps mp3 concat
 COMMON_DECODERS = \
 	vp8 vp9 theora \
-	mpeg2video mpeg4 h264 hevc \
-	png mjpeg \
+	mpeg2video mpeg4 h264 \
 	vorbis opus \
-	mp3 ac3 aac \
-	ass ssa srt webvtt
+	mp3 ac3 aac
 
 WEBM_MUXERS = webm ogg null
 WEBM_ENCODERS = libvpx_vp8 libopus
@@ -68,6 +66,8 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 		--disable-asm \
 		--disable-rtcd \
 		--disable-intrinsics \
+		--disable-hardening \
+		--disable-stack-protector \
 		&& \
 	emmake make -j && \
 	emmake make install
@@ -159,6 +159,7 @@ FFMPEG_COMMON_ARGS = \
 	--disable-os2threads \
 	--disable-debug \
 	--disable-stripping \
+	--disable-safe-bitstream-reader \
 	\
 	--disable-all \
 	--enable-ffmpeg \
@@ -172,7 +173,6 @@ FFMPEG_COMMON_ARGS = \
 	--disable-d3d11va \
 	--disable-dxva2 \
 	--disable-vaapi \
-	--disable-vda \
 	--disable-vdpau \
 	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
 	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
@@ -182,16 +182,13 @@ FFMPEG_COMMON_ARGS = \
 	--disable-iconv \
 	--disable-libxcb \
 	--disable-lzma \
-	--disable-sdl \
+	--disable-sdl2 \
 	--disable-securetransport \
 	--disable-xlib \
 	--disable-zlib
 
 build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	cd build/ffmpeg-webm && \
-	git reset --hard && \
-	patch -p1 < ../ffmpeg-disable-arc4random.patch && \
-	patch -p1 < ../ffmpeg-disable-monotonic.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
@@ -206,9 +203,6 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
-	git reset --hard && \
-	patch -p1 < ../ffmpeg-disable-arc4random.patch && \
-	patch -p1 < ../ffmpeg-disable-monotonic.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-encoder=,$(MP4_ENCODERS)) \
