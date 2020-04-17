@@ -12,7 +12,7 @@
 	ignore = dirty
 [submodule "build/x264"]
 	path = build/x264
-	url = https://git.videolan.org/git/x264.git
+	url = https://code.videolan.org/videolan/x264.git
 	ignore = dirty
 [submodule "build/ffmpeg-webm"]
 	path = build/ffmpeg-webm

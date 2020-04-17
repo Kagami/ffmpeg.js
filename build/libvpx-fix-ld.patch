@@ -1,8 +1,8 @@
 diff --git a/build/make/Makefile b/build/make/Makefile
-index 3e8c02490..362a37310 100644
+index be2810229..5a622c05d 100644
 --- a/build/make/Makefile
 +++ b/build/make/Makefile
-@@ -295,8 +295,8 @@ define so_template
+@@ -303,8 +303,8 @@ define so_template
  $(1):
  	$(if $(quiet),@echo "    [LD] $$@")
  	$(qexec)$$(LD) -shared $$(LDFLAGS) \

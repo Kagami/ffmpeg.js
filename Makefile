@@ -99,8 +99,9 @@ build/libvpx/dist/lib/libvpx.so:
 build/lame/dist/lib/libmp3lame.so:
 	cd build/lame/lame && \
 	git reset --hard && \
-	patch -p2 < ../../lame-configure.patch && \
+	patch -p2 < ../../lame-fix-ld.patch && \
 	emconfigure ./configure \
+		CFLAGS="-DNDEBUG -O3" \
 		--prefix="$$(pwd)/../dist" \
 		--host=x86-none-linux \
 		--disable-static \
@@ -115,8 +116,6 @@ build/lame/dist/lib/libmp3lame.so:
 
 build/x264/dist/lib/libx264.so:
 	cd build/x264 && \
-	git reset --hard && \
-	patch -p1 < ../x264-configure.patch && \
 	emconfigure ./configure \
 		--prefix="$$(pwd)/dist" \
 		--extra-cflags="-Wno-unknown-warning-option" \
