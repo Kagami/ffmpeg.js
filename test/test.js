@@ -216,7 +216,7 @@ describe("WebM", function() {
       expect(res.MEMFS[0].data.length).to.equal(0);
     });
 
-    it("should have subtitles filter", function() {
+    it.skip("should have subtitles filter", function() {
       var code;
       var res = ffmpeg_webm({
         arguments: [

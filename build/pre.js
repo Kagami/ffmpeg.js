@@ -26,11 +26,6 @@ function __ffmpegjs(__ffmpegjs_opts) {
     }
   });
 
-  // Make run sync.
-  createWasm = function() {
-    return new WebAssembly.Instance().exports;
-  }
-
   // Mute exception on unreachable.
   abort = function(what) {
     if (arguments.length) {
