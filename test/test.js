@@ -1,7 +1,7 @@
 var expect = require("chai").expect;
 var fs = require("fs");
 var path = require("path");
-// var Worker = require("webworker-threads").Worker;
+var Worker = require("worker_threads").Worker;
 var ffmpeg_webm = require("../ffmpeg-webm");
 var ffmpeg_mp4 = require("../ffmpeg-mp4");
 
@@ -10,7 +10,7 @@ var testDataPath = path.join(__dirname, "test.webm");
 var testData = new Uint8Array(fs.readFileSync(testDataPath));
 
 describe("WebM", function() {
-  this.timeout(10000);
+  this.timeout(20000);
 
   describe("Sync", function() {
     it("should print version to stdout", function() {
@@ -55,7 +55,6 @@ describe("WebM", function() {
     });
 
     it("should encode test file to WebM/VP8 at MEMFS", function() {
-      this.timeout(60000);
       var code;
       var res = ffmpeg_webm({
         arguments: [
@@ -79,7 +78,6 @@ describe("WebM", function() {
     });
 
     it("should encode test file to WebM/Opus at MEMFS", function() {
-      this.timeout(60000);
       var code;
       var res = ffmpeg_webm({
         arguments: [
@@ -254,7 +252,7 @@ describe("WebM", function() {
       expect(file.data).to.be.an.instanceof(Uint8Array);
     });
 
-    it("should encode sequence of frames to WebM", function() {
+    it.skip("should encode sequence of frames to WebM", function() {
       var res = ffmpeg_webm({
         // FIXME(Kagami): pattern_type=sequence doesn't work with NODEFS
         // for some reason.
@@ -274,14 +272,13 @@ describe("WebM", function() {
     });
   });
 
-  describe.skip("Worker", function() {
+  describe("Worker", function() {
     it("should print version to stdout", function(done) {
       var stdout = "";
       var stderr = "";
-      var worker = new Worker("ffmpeg-worker-webm.js");
-      worker.onerror = done;
-      worker.onmessage = function(e) {
-        var msg = e.data;
+      var worker = new Worker("./ffmpeg-worker-webm.js");
+      worker.on("error", done);
+      worker.on("message", function(msg) {
         switch (msg.type) {
         case "ready":
           worker.postMessage({type: "run", arguments: ["-version"]});
@@ -293,25 +290,21 @@ describe("WebM", function() {
           stderr += msg.data + "\n";
           break;
         case "exit":
+          worker.terminate();
           expect(stderr).to.be.empty;
           expect(msg.data).to.equal(0);
           expect(stdout).to.match(/^ffmpeg version /);
-          // FIXME(Kagami): This cause segfault on Node 6.x.
-          // worker.terminate();
           done();
           break;
         }
-      };
+      });
     });
 
-    // FIXME(Kagami): Blocked by:
-    // <https://github.com/audreyt/node-webworker-threads/issues/60>.
-    it.skip("should encode test file to WebM/VP8 at MEMFS", function(done) {
-      this.timeout(60000);
-      var worker = new Worker("ffmpeg-worker-webm.js");
+    it("should encode test file to WebM/VP8 at MEMFS", function(done) {
+      var worker = new Worker("./ffmpeg-worker-webm.js");
       worker.onerror = done;
-      worker.onmessage = function(e) {
-        var msg = e.data;
+      worker.on("error", done);
+      worker.on("message", function(msg) {
         switch (msg.type) {
         case "ready":
           worker.postMessage({
@@ -326,21 +319,21 @@ describe("WebM", function() {
           });
           break;
         case "done":
-          var mem = res.data.MEMFS;
+          worker.terminate();
+          var mem = msg.data.MEMFS;
           expect(mem).to.have.length(1);
           expect(mem[0].name).to.equal("out.webm");
           expect(mem[0].data.length).to.be.above(0);
-          worker.terminate();
           done();
           break;
         }
-      };
+      });
     });
   });
 });
 
 describe("MP4", function() {
-  this.timeout(10000);
+  this.timeout(20000);
 
   describe("Sync", function() {
     it("should print version to stdout", function() {
@@ -359,7 +352,6 @@ describe("MP4", function() {
     });
 
     it("should encode test file to MP4/H.264/MP3 at MEMFS", function() {
-      this.timeout(60000);
       var code;
       var res = ffmpeg_mp4({
         arguments: [
@@ -402,16 +394,13 @@ describe("MP4", function() {
     });
   });
 
-  // TODO(Kagami): Test worker builds with Karma. node-webworker-threads
-  // has too many bugs.
-  describe.skip("Worker", function() {
+  describe("Worker", function() {
     it("should print version to stdout", function(done) {
       var stdout = "";
       var stderr = "";
-      var worker = new Worker("ffmpeg-worker-mp4.js");
-      worker.onerror = done;
-      worker.onmessage = function(e) {
-        var msg = e.data;
+      var worker = new Worker("./ffmpeg-worker-mp4.js");
+      worker.on("error", done);
+      worker.on("message", function(msg) {
         switch (msg.type) {
         case "ready":
           worker.postMessage({type: "run", arguments: ["-version"]});
@@ -423,14 +412,44 @@ describe("MP4", function() {
           stderr += msg.data + "\n";
           break;
         case "exit":
+          worker.terminate();
           expect(stderr).to.be.empty;
           expect(msg.data).to.equal(0);
           expect(stdout).to.match(/^ffmpeg version /);
-          worker.terminate();
           done();
           break;
         }
-      };
+      });
+    });
+
+    it("should encode test file to MP4/H.264 at MEMFS", function(done) {
+      var worker = new Worker("./ffmpeg-worker-mp4.js");
+      worker.onerror = done;
+      worker.on("error", done);
+      worker.on("message", function(msg) {
+        switch (msg.type) {
+        case "ready":
+          worker.postMessage({
+            type: "run",
+            arguments: [
+              "-i", "test.webm",
+              "-frames:v", "5", "-c:v", "libx264",
+              "-an",
+              "out.mp4",
+            ],
+            MEMFS: [{name: "test.webm", data: testData}],
+          });
+          break;
+        case "done":
+          worker.terminate();
+          var mem = msg.data.MEMFS;
+          expect(mem).to.have.length(1);
+          expect(mem[0].name).to.equal("out.mp4");
+          expect(mem[0].data.length).to.be.above(0);
+          done();
+          break;
+        }
+      });
     });
   });
 });

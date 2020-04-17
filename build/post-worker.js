@@ -3,6 +3,11 @@
 
 var __ffmpegjs_running = false;
 
+// Shim for nodejs
+if (typeof self === "undefined") {
+  self = require("worker_threads").parentPort;
+}
+
 self.onmessage = function(e) {
   function makeOutHandler(cb) {
     var buf = [];
@@ -12,8 +17,7 @@ self.onmessage = function(e) {
         cb(__ffmpegjs_utf8ToStr(buf, 0));
         buf = [];
       } else if (ch !== 0) {
-        // See <https://github.com/kripken/emscripten/blob/1.34.4/
-        // src/library_tty.js#L146>.
+        // See <https://github.com/kripken/emscripten/blob/1.34.4/src/library_tty.js#L146>
         buf.push(ch);
       }
     };
