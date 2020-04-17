@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/ffmpeg.js.png?downloads=true)](https://www.npmjs.com/package/ffmpeg.js)
 
-This library provides FFmpeg builds ported to JavaScript using [Emscripten project](https://github.com/kripken/emscripten). Builds are optimized for in-browser use: minimal size for faster loading, asm.js, performance tunings, etc. Though they work in Node as well.
+This library provides FFmpeg builds ported to JavaScript using [Emscripten project](https://github.com/emscripten-core/emscripten). Builds are optimized for in-browser use: minimal size for faster loading, asm.js, performance tunings, etc. Though they work in Node as well.
 
 ## Builds
 
@@ -25,7 +25,7 @@ Example: `2.7.9005`
 
 ## Usage
 
-See documentation on [Module object](https://kripken.github.io/emscripten-site/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
+See documentation on [Module object](https://emscripten.org/docs/api_reference/module.html#affecting-execution) for the list of options that you can pass.
 
 ### Sync run
 
@@ -47,7 +47,7 @@ ffmpeg({
 });
 ```
 
-Use e.g. [browserify](https://github.com/substack/node-browserify) in case of Browser.
+Use e.g. [browserify](https://github.com/browserify/browserify) in case of Browser.
 
 ### Via Web Worker
 
@@ -88,11 +88,11 @@ worker.onmessage = function(e) {
 };
 ```
 
-This works in Browser as is, use e.g. [webworker-threads](https://github.com/audreyt/node-webworker-threads) Web Worker implementation in Node.
+You can use [worker_threads](https://nodejs.org/api/worker_threads.html) module in case of Node.
 
 ### Files
 
-Empscripten supports several types of [file systems](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#file-systems). ffmpeg.js uses [MEMFS](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#memfs) to store the input/output files in FFmpeg's working directory. You need to pass *Array* of *Object* to `MEMFS` option with the following keys:
+Empscripten supports several types of [file systems](https://emscripten.org/docs/api_reference/Filesystem-API.html#file-systems). ffmpeg.js uses [MEMFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs) to store the input/output files in FFmpeg's working directory. You need to pass *Array* of *Object* to `MEMFS` option with the following keys:
 * **name** *(String)* - File name, can't contain slashes.
 * **data** *(ArrayBuffer/ArrayBufferView/Array)* - File data.
 
@@ -119,7 +119,7 @@ You can also mount other FS by passing *Array* of *Object* to `mounts` option wi
 * **opts** *(Object)* - Underlying file system options.
 * **mountpoint** *(String)* - Mount path, must start with a slash, must not contain other slashes and also the following paths are blacklisted: `/tmp`, `/home`, `/dev`, `/work`. Mount directory will be created automatically before mount.
 
-See documentation of [FS.mount](https://kripken.github.io/emscripten-site/docs/api_reference/Filesystem-API.html#FS.mount) for more details.
+See documentation of [FS.mount](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.mount) for more details.
 
 ```js
 var ffmpeg = require("ffmpeg.js");
