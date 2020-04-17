@@ -137,24 +137,19 @@ Tips, use a [docker](https://www.docker.com/) container (basic ubuntu is good)
 
 ```bash
 apt-get update
-apt-get -y install wget python git automake libtool build-essential cmake libglib2.0-dev closure-compiler
+apt-get -y install python python3-distutils git automake libtool build-essential
 
 cd /root # or /home/whatever
-wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
-tar xzvf emsdk-portable.tar.gz
-cd emsdk-portable
-./emsdk update
-./emsdk install node-8.9.1-64bit && ./emsdk install emscripten-1.35.0 && ./emsdk install clang-tag-e1.35.0-64bit
-./emsdk activate node-8.9.1-64bit && ./emsdk activate emscripten-1.35.0 && ./emsdk activate clang-tag-e1.35.0-64bit
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
 source ./emsdk_env.sh
 
 cd /root # or /home/whatever
-git clone https://github.com/Kagami/ffmpeg.js.git
+git clone https://github.com/Kagami/ffmpeg.js.git --recurse-submodules
 cd ffmpeg.js
-git submodule init
-git submodule update --recursive
-
-make all
+make
 ```
 
 ## Credits

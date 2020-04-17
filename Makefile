@@ -74,6 +74,8 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 
 build/libvpx/dist/lib/libvpx.so:
 	cd build/libvpx && \
+	git reset --hard && \
+	patch -p1 < ../libvpx-fix-ld.patch && \
 	emconfigure ./configure \
 		--prefix="$$(pwd)/dist" \
 		--target=generic-gnu \
@@ -146,6 +148,7 @@ build/x264/dist/lib/libx264.so:
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
 FFMPEG_COMMON_ARGS = \
 	--cc=emcc \
+	--ranlib=emranlib \
 	--enable-cross-compile \
 	--target-os=none \
 	--arch=x86 \
@@ -220,14 +223,17 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	emmake make -j && \
 	cp ffmpeg ffmpeg.bc
 
-# Compile bitcode to JavaScript.
-# NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
-# for simple tests and 32M tends to run slower than 64M.
 EMCC_COMMON_ARGS = \
+	-O3 \
 	--closure 1 \
+	--memory-init-file 0 \
+	-s WASM=0 \
+	-s EXIT_RUNTIME=1 \
+	-s ASSERTIONS=0 \
+	-s NODEJS_CATCH_EXIT=0 \
+	-s NODEJS_CATCH_REJECTION=0 \
 	-s TOTAL_MEMORY=67108864 \
-	-s OUTLINING_LIMIT=20000 \
-	-O3 --memory-init-file 0 \
+	-lnodefs.js -lworkerfs.js \
 	--pre-js $(PRE_JS) \
 	-o $@
 

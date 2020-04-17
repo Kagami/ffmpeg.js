@@ -3,6 +3,7 @@ var __ffmpegjs_utf8ToStr;
 function __ffmpegjs(__ffmpegjs_opts) {
   __ffmpegjs_utf8ToStr = UTF8ArrayToString;
   __ffmpegjs_opts = __ffmpegjs_opts || {};
+  var __ffmpegjs_abort = abort;
   var __ffmpegjs_return;
   var Module = {};
 
@@ -20,26 +21,28 @@ function __ffmpegjs(__ffmpegjs_opts) {
   }
 
   Object.keys(__ffmpegjs_opts).forEach(function(key) {
-    if (key != "mounts" && key != "MEMFS") {
+    if (key != "mounts" && key != "MEMFS" && key != "onExit") {
       Module[key] = __ffmpegjs_opts[key];
     }
   });
 
-  // XXX(Kagami): Prevent Emscripten to call `process.exit` at the end of
-  // execution on Node.
-  // There is no longer `NODE_STDOUT_FLUSH_WORKAROUND` and it seems to
-  // be the best way to accomplish that.
-  Module["preInit"] = function() {
-    if (ENVIRONMENT_IS_NODE) {
-      exit = Module["exit"] = function(status) {
-        ABORT = true;
-        EXITSTATUS = status;
-        STACKTOP = initialStackTop;
-        exitRuntime();
-        if (Module["onExit"]) Module["onExit"](status);
-        throw new ExitStatus(status);
-      };
+  // Make run sync.
+  createWasm = function() {
+    return new WebAssembly.Instance().exports;
+  }
+
+  // Mute exception on unreachable.
+  abort = function(what) {
+    if (arguments.length) {
+      __ffmpegjs_abort(what);
+    } else {
+      throw new ExitStatus(0);
     }
+  };
+
+  // Disable process.exit in nodejs and don't call onExit twice.
+  Module["quit"] = function(status) {
+    if (__ffmpegjs_opts["onExit"]) __ffmpegjs_opts["onExit"](status);
   };
 
   Module["preRun"] = function() {

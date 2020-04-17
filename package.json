@@ -23,8 +23,7 @@
   },
   "homepage": "https://github.com/Kagami/ffmpeg.js#readme",
   "devDependencies": {
-    "chai": "*",
-    "mocha": "*",
-    "webworker-threads": "^0.7.8"
+    "chai": "latest",
+    "mocha": "latest"
   }
 }

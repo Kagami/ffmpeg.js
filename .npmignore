@@ -1,5 +1,4 @@
-/.npmignore
-/.gitmodules
-/Makefile
-/build/
-/test/
+*
+!/COPYING.*
+!/LICENSE.*
+!/ffmpeg*.js
