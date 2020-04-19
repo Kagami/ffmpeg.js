@@ -133,22 +133,39 @@ ffmpeg({
 ```
 
 ## Build instructions
-Tips, use a [docker](https://www.docker.com/) container (basic ubuntu is good)
+
+It's recommended to use [Docker](https://www.docker.com/) to build ffmpeg.js.
+
+1.  Clone ffmpeg.js repository with submodules:
+    ```bash
+    git clone https://github.com/Kagami/ffmpeg.js.git --recurse-submodules
+    ```
+
+2.  Modify Makefile and/or patches if you wish to make a custom build.
+
+3.  Build everything:
+    ```bash
+    docker run --rm -it -v /path/to/ffmpeg.js:/mnt kagamihi/ffmpeg.js
+    # cp -a /mnt/{.git,build,Makefile} /opt && cd /opt && . /root/emsdk/emsdk_env.sh && make && cp ffmpeg*js /mnt
+    ```
+
+That's it. ffmpeg.js modules should appear in your repository clone.
+
+## Build without Docker
+
+Ubuntu example:
 
 ```bash
-apt-get update
-apt-get -y install python python3-distutils git automake libtool build-essential
+apt-get update && apt-get install -y git python build-essential automake libtool pkg-config
 
-cd /root # or /home/whatever
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
+cd /root
+git clone https://github.com/emscripten-core/emsdk.git && cd emsdk
 ./emsdk install latest
 ./emsdk activate latest
-source ./emsdk_env.sh
+source emsdk_env.sh
 
-cd /root # or /home/whatever
-git clone https://github.com/Kagami/ffmpeg.js.git --recurse-submodules
-cd ffmpeg.js
+cd /root
+git clone https://github.com/Kagami/ffmpeg.js.git --recurse-submodules && cd ffmpeg.js
 make
 ```
 

@@ -124,6 +124,9 @@ build/x264/dist/lib/libx264.so:
 		--enable-shared \
 		--disable-opencl \
 		--disable-thread \
+		--disable-interlaced \
+		--bit-depth=8 \
+		--chroma-format=420 \
 		--disable-asm \
 		\
 		--disable-avs \
@@ -165,10 +168,9 @@ FFMPEG_COMMON_ARGS = \
 	--enable-ffmpeg \
 	--enable-avcodec \
 	--enable-avformat \
-	--enable-avutil \
+	--enable-avfilter \
 	--enable-swresample \
 	--enable-swscale \
-	--enable-avfilter \
 	--disable-network \
 	--disable-d3d11va \
 	--disable-dxva2 \
