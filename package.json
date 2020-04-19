@@ -18,6 +18,7 @@
   ],
   "author": "Kagami Hiiragi",
   "license": "(LGPL-2.1+ OR GPL-2.0)",
+  "ethereum": "0x3ec9a73ba55a22f020226be8b4496304d12be0e1",
   "bugs": {
     "url": "https://github.com/Kagami/ffmpeg.js/issues"
   },
