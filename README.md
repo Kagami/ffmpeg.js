@@ -64,8 +64,6 @@ You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
 
 ```js
-var stdout = "";
-var stderr = "";
 var worker = new Worker("ffmpeg-worker-webm.js");
 worker.onmessage = function(e) {
   var msg = e.data;
@@ -74,15 +72,13 @@ worker.onmessage = function(e) {
     worker.postMessage({type: "run", arguments: ["-version"]});
     break;
   case "stdout":
-    stdout += msg.data + "\n";
+    console.log(msg.data);
     break;
   case "stderr":
-    stderr += msg.data + "\n";
+    console.log(msg.data);
     break;
-  case "exit":
-    console.log("Process exited with code " + msg.data);
-    console.log(stdout);
-    worker.terminate();
+  case "done":
+    console.log(msg.data);
     break;
   }
 };
@@ -106,8 +102,6 @@ var testData = new Uint8Array(fs.readFileSync("test.webm"));
 var result = ffmpeg({
   MEMFS: [{name: "test.webm", data: testData}],
   arguments: ["-i", "test.webm", "-c:v", "libvpx", "-an", "out.webm"],
-  // Ignore stdin read requests.
-  stdin: function() {},
 });
 // Write out.webm to disk.
 var out = result.MEMFS[0];
@@ -127,7 +121,6 @@ ffmpeg({
   // Mount /data inside application to the current directory.
   mounts: [{type: "NODEFS", opts: {root: "."}, mountpoint: "/data"}],
   arguments: ["-i", "/data/test.webm", "-c:v", "libvpx", "-an", "/data/out.webm"],
-  stdin: function() {},
 });
 // out.webm was written to the current directory.
 ```
