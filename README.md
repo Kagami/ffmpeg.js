@@ -120,7 +120,7 @@ var ffmpeg = require("ffmpeg.js");
 ffmpeg({
   // Mount /data inside application to the current directory.
   mounts: [{type: "NODEFS", opts: {root: "."}, mountpoint: "/data"}],
-  arguments: ["-i", "/data/test.webm", "-c:v", "libvpx", "-an", "/data/out.webm"],
+  arguments: ["-i", "/data/test.webm", "-c:v", "libvpx", "-an", "-y", "/data/out.webm"],
 });
 // out.webm was written to the current directory.
 ```
