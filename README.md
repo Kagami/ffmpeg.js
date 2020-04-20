@@ -139,7 +139,7 @@ It's recommended to use [Docker](https://www.docker.com/) to build ffmpeg.js.
 3.  Build everything:
     ```bash
     docker run --rm -it -v /path/to/ffmpeg.js:/mnt -w /opt kagamihi/ffmpeg.js
-    # cp -a /mnt/{.git,build,Makefile} . && source /root/emsdk/emsdk_env.sh && make && cp ffmpeg*js /mnt
+    # cp -a /mnt/{.git,build,Makefile} . && source /root/emsdk/emsdk_env.sh && make && cp ffmpeg*.js /mnt
     ```
 
 That's it. ffmpeg.js modules should appear in your repository clone.
@@ -149,15 +149,16 @@ That's it. ffmpeg.js modules should appear in your repository clone.
 Ubuntu example:
 
 ```bash
-apt-get update && apt-get install -y git python build-essential automake libtool pkg-config
+sudo apt-get update
+sudo apt-get install -y git python build-essential automake libtool pkg-config
 
-cd /root
+cd ~
 git clone https://github.com/emscripten-core/emsdk.git && cd emsdk
 ./emsdk install latest
 ./emsdk activate latest
 source emsdk_env.sh
 
-cd /root
+cd ~
 git clone https://github.com/Kagami/ffmpeg.js.git --recurse-submodules && cd ffmpeg.js
 make
 ```
