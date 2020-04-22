@@ -32,9 +32,9 @@ See documentation on [Module object](https://emscripten.org/docs/api_reference/m
 ffmpeg.js provides common module API, `ffmpeg-webm.js` is the default module. Add its name after the slash if you need another build, e.g. `require("ffmpeg.js/ffmpeg-mp4.js")`.
 
 ```js
-var ffmpeg = require("ffmpeg.js");
-var stdout = "";
-var stderr = "";
+const ffmpeg = require("ffmpeg.js");
+let stdout = "";
+let stderr = "";
 // Print FFmpeg's version.
 ffmpeg({
   arguments: ["-version"],
@@ -43,6 +43,7 @@ ffmpeg({
   onExit: function(code) {
     console.log("Process exited with code " + code);
     console.log(stdout);
+    console.log(stderr);
   },
 });
 ```
@@ -64,9 +65,9 @@ You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
 
 ```js
-var worker = new Worker("ffmpeg-worker-webm.js");
+const worker = new Worker("ffmpeg-worker-webm.js");
 worker.onmessage = function(e) {
-  var msg = e.data;
+  const msg = e.data;
   switch (msg.type) {
   case "ready":
     worker.postMessage({type: "run", arguments: ["-version"]});
@@ -95,16 +96,16 @@ Empscripten supports several types of [file systems](https://emscripten.org/docs
 ffmpeg.js resulting object has `MEMFS` option with the same structure and contains files which weren't passed to the input, i.e. new files created by FFmpeg.
 
 ```js
-var ffmpeg = require("ffmpeg.js");
-var fs = require("fs");
-var testData = new Uint8Array(fs.readFileSync("test.webm"));
+const ffmpeg = require("ffmpeg.js");
+const fs = require("fs");
+const testData = new Uint8Array(fs.readFileSync("test.webm"));
 // Encode test video to VP8.
-var result = ffmpeg({
+const result = ffmpeg({
   MEMFS: [{name: "test.webm", data: testData}],
   arguments: ["-i", "test.webm", "-c:v", "libvpx", "-an", "out.webm"],
 });
 // Write out.webm to disk.
-var out = result.MEMFS[0];
+const out = result.MEMFS[0];
 fs.writeFileSync(out.name, Buffer(out.data));
 ```
 
@@ -116,7 +117,7 @@ You can also mount other FS by passing *Array* of *Object* to `mounts` option wi
 See documentation of [FS.mount](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.mount) for more details.
 
 ```js
-var ffmpeg = require("ffmpeg.js");
+const ffmpeg = require("ffmpeg.js");
 ffmpeg({
   // Mount /data inside application to the current directory.
   mounts: [{type: "NODEFS", opts: {root: "."}, mountpoint: "/data"}],
