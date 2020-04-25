@@ -252,7 +252,7 @@ describe("WebM", function() {
       expect(file.data).to.be.an.instanceof(Uint8Array);
     });
 
-    /*it("should encode sequence of frames to WebM", function() {
+    it("should encode JPEGs to WebM", function() {
       var res = ffmpeg_webm({
         // FIXME(Kagami): pattern_type=sequence doesn't work with NODEFS
         // for some reason.
@@ -269,7 +269,23 @@ describe("WebM", function() {
       var file = res.MEMFS[0];
       expect(file.name).to.equal("out.webm");
       expect(file.data.length).to.be.above(0);
-    });*/
+    });
+
+    it("should encode PNGs to WebM", function() {
+      var res = ffmpeg_webm({
+        arguments: [
+          "-pattern_type", "glob",
+          "-i", "/data/test-frame*.png",
+          "out.webm",
+        ],
+        print: noop,
+        printErr: noop,
+        mounts: [{type: "NODEFS", opts: {root: "test"}, mountpoint: "/data"}],
+      });
+      var file = res.MEMFS[0];
+      expect(file.name).to.equal("out.webm");
+      expect(file.data.length).to.be.above(0);
+    });
   });
 
   describe("Worker", function() {
