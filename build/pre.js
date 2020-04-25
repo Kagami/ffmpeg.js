@@ -33,7 +33,7 @@ function __ffmpegjs(__ffmpegjs_opts) {
   };
 
   // Fix CR.
-  function makeOutHandler(cb) {
+  function __ffmpegjs_out(cb) {
     var buf = [];
     return function(ch, flush) {
       if (flush && buf.length) return cb(UTF8ArrayToString(buf, 0));
@@ -47,8 +47,8 @@ function __ffmpegjs(__ffmpegjs_opts) {
     };
   }
   Module["stdin"] = Module["stdin"] || function() {};
-  Module["stdout"] = Module["stdout"] || makeOutHandler(function(line) { out(line) });
-  Module["stderr"] = Module["stderr"] || makeOutHandler(function(line) { err(line) });
+  Module["stdout"] = Module["stdout"] || __ffmpegjs_out(function(line) { out(line) });
+  Module["stderr"] = Module["stderr"] || __ffmpegjs_out(function(line) { err(line) });
   if (typeof process === "object") {
     Module["print"] = Module["print"] || process.stdout.write.bind(process.stdout);
     Module["printErr"] = Module["printErr"] || process.stderr.write.bind(process.stderr);
