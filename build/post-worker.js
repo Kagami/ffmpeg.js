@@ -31,6 +31,9 @@ self.onmessage = function(e) {
       opts["onExit"] = function(code) {
         self.postMessage({"type": "exit", "data": code});
       };
+      opts["onAbort"] = function(reason) {
+        self.postMessage({"type": "abort", "data": reason});
+      };
       // TODO(Kagami): Should we wrap this function into try/catch in
       // case of possible exception?
       var result = __ffmpegjs(opts);
