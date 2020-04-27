@@ -60,6 +60,7 @@ ffmpeg.js also provides wrapper for main function with Web Worker interface to o
 * `{type: "exit", data: "<code>"}` - FFmpeg exited.
 * `{type: "done", data: "<result>"}` - Job finished with some result.
 * `{type: "error", data: "<error description>"}` - Error occurred.
+* `{type: "abort", data: "<abort reason>"}` - FFmpeg terminated abnormally (e.g. out of memory, wasm error).
 
 You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
