@@ -112,6 +112,8 @@ build/lame/dist/lib/libmp3lame.so:
 
 build/x264/dist/lib/libx264.so:
 	cd build/x264 && \
+	git reset --hard && \
+	patch -p1 < ../x264-fix-configure.patch && \
 	emconfigure ./configure \
 		--prefix="$$(pwd)/dist" \
 		--extra-cflags="-Wno-unknown-warning-option" \
@@ -242,9 +244,9 @@ ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER)
 ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_SYNC)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_SYNC) \
-		$(EMCC_COMMON_ARGS) -O2
+		$(EMCC_COMMON_ARGS)
 
 ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
-		$(EMCC_COMMON_ARGS) -O2
+		$(EMCC_COMMON_ARGS)
