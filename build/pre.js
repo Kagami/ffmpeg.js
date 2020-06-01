@@ -1,5 +1,6 @@
 function __ffmpegjs(__ffmpegjs_opts) {
   __ffmpegjs_opts = __ffmpegjs_opts || {};
+  var __ffmpegjs_abort = abort;
   var __ffmpegjs_return;
   var Module = {};
 
@@ -21,6 +22,15 @@ function __ffmpegjs(__ffmpegjs_opts) {
       Module[key] = __ffmpegjs_opts[key];
     }
   });
+
+  // Mute exception on unreachable.
+  abort = function(what) {
+    if (arguments.length) {
+      __ffmpegjs_abort(what);
+    } else {
+      throw new ExitStatus(0);
+    }
+  };
 
   // Fix CR.
   function __ffmpegjs_out(cb) {
@@ -49,7 +59,6 @@ function __ffmpegjs(__ffmpegjs_opts) {
     Module["stdout"](0, true);
     Module["stderr"](0, true);
     if (__ffmpegjs_opts["onExit"]) __ffmpegjs_opts["onExit"](status);
-    throw new ExitStatus(status);
   };
 
   Module["preRun"] = function() {
