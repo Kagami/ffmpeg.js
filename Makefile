@@ -194,10 +194,9 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 		--enable-libopus \
 		--enable-libvpx \
 		--extra-cflags="-s USE_ZLIB=1 -I../libvpx/dist/include" \
-		--extra-ldflags="-L../libvpx/dist/lib" \
+		--extra-ldflags="-r -L../libvpx/dist/lib" \
 		&& \
-	emmake make -j && \
-	cp ffmpeg ffmpeg.bc
+	emmake make -j EXESUF=.bc
 
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
@@ -209,10 +208,9 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 		--enable-libmp3lame \
 		--enable-libx264 \
 		--extra-cflags="-s USE_ZLIB=1 -I../lame/dist/include" \
-		--extra-ldflags="-L../lame/dist/lib" \
+		--extra-ldflags="-r -L../lame/dist/lib" \
 		&& \
-	emmake make -j && \
-	cp ffmpeg ffmpeg.bc
+	emmake make -j EXESUF=.bc
 
 EMCC_COMMON_ARGS = \
 	-O3 \
