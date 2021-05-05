@@ -3,12 +3,15 @@
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
 PRE_JS = build/pre.js
+LIBRARY_JS = build/library.js
 POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
 COMMON_FILTERS = aresample scale crop overlay hstack vstack
 COMMON_DEMUXERS = matroska ogg mov mp3 wav image2 concat
+COMMON_MUXERS = dash
 COMMON_DECODERS = vp8 h264 vorbis opus mp3 aac pcm_s16le mjpeg png
+COMMON_BSFS = vp9_superframe
 
 WEBM_MUXERS = webm ogg null
 WEBM_ENCODERS = libvpx_vp8 libopus
@@ -172,9 +175,12 @@ FFMPEG_COMMON_ARGS = \
 	--disable-dxva2 \
 	--disable-vaapi \
 	--disable-vdpau \
+	$(addprefix --enable-bsf=,$(COMMON_BSFS)) \
 	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
 	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
+	$(addprefix --enable-muxer=,$(COMMON_MUXERS)) \
 	--enable-protocol=file \
+	--enable-protocol=pipe \
 	$(addprefix --enable-filter=,$(COMMON_FILTERS)) \
 	--disable-bzlib \
 	--disable-iconv \
@@ -194,10 +200,9 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 		--enable-libopus \
 		--enable-libvpx \
 		--extra-cflags="-s USE_ZLIB=1 -I../libvpx/dist/include" \
-		--extra-ldflags="-L../libvpx/dist/lib" \
+		--extra-ldflags="-r -L../libvpx/dist/lib" \
 		&& \
-	emmake make -j && \
-	cp ffmpeg ffmpeg.bc
+	emmake make -j EXESUF=.bc
 
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
@@ -209,13 +214,15 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 		--enable-libmp3lame \
 		--enable-libx264 \
 		--extra-cflags="-s USE_ZLIB=1 -I../lame/dist/include" \
-		--extra-ldflags="-L../lame/dist/lib" \
+		--extra-ldflags="-r -L../lame/dist/lib" \
 		&& \
-	emmake make -j && \
-	cp ffmpeg ffmpeg.bc
+	emmake make -j EXESUF=.bc
 
 EMCC_COMMON_ARGS = \
 	-O3 \
+        -s ASYNCIFY \
+        -s 'ASYNCIFY_IMPORTS=["emscripten_stdin_async"]' \
+        --js-library $(LIBRARY_JS) \
 	--closure 1 \
 	--memory-init-file 0 \
 	-s WASM=0 \
@@ -234,7 +241,7 @@ ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_SYNC)
 		--post-js $(POST_JS_SYNC) \
 		$(EMCC_COMMON_ARGS)
 
-ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER)
+ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_JS)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_ARGS)
@@ -242,9 +249,9 @@ ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER)
 ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_SYNC)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_SYNC) \
-		$(EMCC_COMMON_ARGS) -O2
+		$(EMCC_COMMON_ARGS)
 
-ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
+ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_JS)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
-		$(EMCC_COMMON_ARGS) -O2
+		$(EMCC_COMMON_ARGS)
