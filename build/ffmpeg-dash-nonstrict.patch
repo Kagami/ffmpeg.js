@@ -1,0 +1,13 @@
+diff --git a/libavformat/dashenc.c b/libavformat/dashenc.c
+index 24d43c34ea..36df2ec91f 100644
+--- a/libavformat/dashenc.c
++++ b/libavformat/dashenc.c
+@@ -1939,7 +1939,7 @@ AVOutputFormat ff_dash_muxer = {
+     .priv_data_size = sizeof(DASHContext),
+     .audio_codec    = AV_CODEC_ID_AAC,
+     .video_codec    = AV_CODEC_ID_H264,
+-    .flags          = AVFMT_GLOBALHEADER | AVFMT_NOFILE | AVFMT_TS_NEGATIVE,
++    .flags          = AVFMT_GLOBALHEADER | AVFMT_NOFILE | AVFMT_TS_NEGATIVE | AVFMT_TS_NONSTRICT,
+     .init           = dash_init,
+     .write_header   = dash_write_header,
+     .write_packet   = dash_write_packet,
