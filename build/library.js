@@ -89,16 +89,40 @@ mergeInto(LibraryManager.library, {
                 }, intercept),
                 stream_ops: new Proxy({
                     open: function (stream) {
-                        console.log("OPEN", stream.path, self.upload_url(stream.node.name));
+                        const url = self.upload_url(stream.node.name);
+                        console.log("OPEN", stream.path, url);
+                        if (url) {
+                            const { readable, writable } = new TransformStream();
+                            stream.upload_writer = writable.getWriter();
+                            fetch(url, {
+                                method: 'PUT',
+                                body: readable,
+                                headers: {
+                                    'Content-Type': 'application/octet-stream'
+                                }
+                            }).then(response => {
+                                if (!response.ok) {
+                                    console.error(response.statusText);
+                                }
+                            }).catch (err => {
+                                console.error(err);
+                            });
+                        }
                         // for .webm, .webm.tmp and .mpd.tmp we should open http connection
                         // we have 3 second window so need to configure ffmpeg to batch in
                         // < 3 second chunks
                         // try sending in our order, might have to delay initial till after
                         // first segment though
+                        // try with dash first but then try hls: we should be able to get it
+                        // to generate m4s files (how? does dash include mp4?)
+                        // does it just mark it and it's still actually webm???
+                        // browser can only generate webm/H264 so we need the container converted
+                        // we could write our own HTTP handler which writes out the files
+                        // and then run ffmpeg on it
                     },
                     llseek: function (stream, offset, whence) {
                         console.log("LLSEEK", stream.path, offset, whence);
-                        const position = offset;
+                        let position = offset;
                         if (whence === {{{ cDefine('SEEK_CUR') }}}) {
                             position += stream.position;
                         } else if (whence === {{{ cDefine('SEEK_END') }}}) {
@@ -107,31 +131,42 @@ mergeInto(LibraryManager.library, {
                             }
                         }
                         if (position < 0) {
-                            throw new Fs.ErrnoError({{{ cDefine('EINVAL') }}});
+                            throw new FS.ErrnoError({{{ cDefine('EINVAL') }}});
                         }
                         return position;
                     },
-                    write: function (stream, buffer, offset, length, position) {
-                        console.log("WRITE", stream.path, offset, length, position);
+                    write: function (stream, buffer, offset, length, position, canOwn) {
+                        console.log("WRITE", stream.path, /*buffer,*/ offset, length, position);
                         if (!length) {
                             return 0;
                         }
                         const node = stream.node;
                         node.timestamp = Date.now();
                         node.usedBytes = Math.max(node.usedBytes, position + length);
+                        if (stream.upload_writer) {
+#if ALLOW_MEMORY_GROWTH
+                            if (buffer.buffer === HEAP8.buffer) {
+                                canOwn = false;
+                            }
+#endif
+                            if (canOwn) {
+                                stream.upload_writer.write(buffer.subarray(offset, offset + length));
+                            } else {
+                                stream.upload_writer.write(buffer.slice(offset, offset + length));
+                            }
+                        }
                         return length;
-                        // for .webm, .webm.tmp and .mpd.tmp we should write to opened http connection
                         // we get init-stream0.webm
                         // then chunkstream0-0001.webm.tmp which is then renamed to chunkstream0-0001.webm
                         // then output.mpd.tmp which is then renamed to output.mpd
                         // we keep getting writes to output.mpd - should we resend it?
                         // what does youtube want?
-                        // 1179
-                        // 1200
                     },
                     close: function (stream) {
                         console.log("CLOSE", stream.path);
-                        // for .webm, .webm.tmp and .mpd.tmp we should close opened http connection
+                        if (stream.upload_writer) {
+                            stream.upload_writer.close();
+                        }
                     }
                 }, intercept)
             }, intercept);
@@ -173,8 +208,10 @@ mergeInto(LibraryManager.library, {
                     }
                 } else if (msg.type === 'base-url') {
                     self.upload_url = function (name) {
-                        if (name.endsWith('.webm') || name.endsWith('.tmp')) {
-                            return msg.data + name.replace(/\.tmp$/, '');
+                        if (name.endsWith('.webm') ||
+                            name.endsWith('.m4s') ||
+                            name.endsWith('.tmp')) {
+                            return msg.data + name.replace(/\.tmp$/, '').replace(/\.m4s$/, '.mp4');
                         }
                         return null;
                     };
