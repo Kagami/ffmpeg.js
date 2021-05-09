@@ -80,7 +80,7 @@ mergeInto(LibraryManager.library, {
                         return ops.createNode(parent, name, mode, dev);
                     },
                     rename: function (old_node, new_dir, new_name) {
-                        //console.log("RENAME", old_node.name, new_name);
+                        console.log("RENAME", old_node.name, new_name);
                         files.delete(old_node.name);
                         old_node.parent.timestamp = Date.now();
                         old_node.name = new_name;
@@ -89,27 +89,9 @@ mergeInto(LibraryManager.library, {
                 }, intercept),
                 stream_ops: new Proxy({
                     open: function (stream) {
-                        const url = self.upload_url(stream.node.name);
-                        console.log("OPEN", stream.path, url);
-                        if (url) {
-                            /*const { readable, writable } = new TransformStream();
-                            stream.upload_writer = writable.getWriter();
-                            stream.upload_promise = fetch(url, {
-                                method: 'PUT',
-                                body: readable,
-                                headers: {
-                                    'Content-Type': 'application/octet-stream'
-                                }
-                            });*/
-                        }
-                        // for .webm, .webm.tmp and .mpd.tmp we should open http connection
-                        // we have 3 second window so need to configure ffmpeg to batch in
-                        // < 3 second chunks
-                        // try sending in our order, might have to delay initial till after
-                        // first segment though
-                        // try with dash first but then try hls: we should be able to get it
-                        // to generate m4s files (how? does dash include mp4?)
-                        // does it just mark it and it's still actually webm???
+                        stream.upload_url = self.upload_url(stream.node.name);
+                        stream.upload_data = [];
+                        console.log("OPEN", stream.path, stream.upload_url);
                         // browser can only generate webm/H264 so we need the container converted
                         // we could write our own HTTP handler which writes out the files
                         // and then run ffmpeg on it
@@ -137,16 +119,16 @@ mergeInto(LibraryManager.library, {
                         const node = stream.node;
                         node.timestamp = Date.now();
                         node.usedBytes = Math.max(node.usedBytes, position + length);
-                        if (stream.upload_writer) {
+                        if (stream.upload_data) {
 #if ALLOW_MEMORY_GROWTH
                             if (buffer.buffer === HEAP8.buffer) {
                                 canOwn = false;
                             }
 #endif
                             if (canOwn) {
-                                stream.upload_writer.write(buffer.subarray(offset, offset + length));
+                                stream.upload_data.push(buffer.subarray(offset, offset + length));
                             } else {
-                                stream.upload_writer.write(buffer.slice(offset, offset + length));
+                                stream.upload_data.push(buffer.slice(offset, offset + length));
                             }
                         }
                         return length;
@@ -201,10 +183,8 @@ mergeInto(LibraryManager.library, {
                     }
                 } else if (msg.type === 'base-url') {
                     self.upload_url = function (name) {
-                        if (name.endsWith('.webm') ||
-                            name.endsWith('.m4s') ||
-                            name.endsWith('.tmp')) {
-                            return msg.data + name.replace(/\.tmp$/, '').replace(/\.m4s$/, '.mp4');
+                        if (name.endsWith('.ts') || name.endsWith('.tmp')) {
+                            return msg.data + name.replace(/\.tmp$/, '');
                         }
                         return null;
                     };
@@ -228,23 +208,25 @@ mergeInto(LibraryManager.library, {
     emscripten_close_async: function (fd) {
         return Asyncify.handleSleep(wakeUp => {
             const stream = FS.streams[fd];
-            if (stream && stream.upload_promise) {
-                console.log("WAITING FOR RESPONSE");
-                stream.upload_writer.close();
-                // TODO: to handle errors we may need to buffer writes and do the actual request here
-                // so we can retry if necessary
-                stream.upload_promise.then(response => {
+            if (stream && stream.upload_url) {
+                console.log("MAKING REQUEST TO", stream.upload_url);
+                // TODO: handle errors by retrying
+                fetch(stream.upload_url, {
+                    mode: 'no-cors',
+                    method: 'POST',
+                    body: new Blob(stream.upload_data),
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                }).then(response => {
                     if (!response.ok) {
                         console.error(response.statusText);
                     }
-                    wakeUp();
                 }).catch (err => {
                     console.error(err);
-                    wakeUp();
                 });
-            } else {
-                wakeUp();
             }
+            wakeUp();
         });
     }
 });
