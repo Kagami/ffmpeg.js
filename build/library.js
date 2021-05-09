@@ -92,7 +92,7 @@ mergeInto(LibraryManager.library, {
                         const url = self.upload_url(stream.node.name);
                         console.log("OPEN", stream.path, url);
                         if (url) {
-                            const { readable, writable } = new TransformStream();
+                            /*const { readable, writable } = new TransformStream();
                             stream.upload_writer = writable.getWriter();
                             stream.upload_promise = fetch(url, {
                                 method: 'PUT',
@@ -100,7 +100,7 @@ mergeInto(LibraryManager.library, {
                                 headers: {
                                     'Content-Type': 'application/octet-stream'
                                 }
-                            });
+                            });*/
                         }
                         // for .webm, .webm.tmp and .mpd.tmp we should open http connection
                         // we have 3 second window so need to configure ffmpeg to batch in
@@ -242,6 +242,8 @@ mergeInto(LibraryManager.library, {
                     console.error(err);
                     wakeUp();
                 });
+            } else {
+                wakeUp();
             }
         });
     }
