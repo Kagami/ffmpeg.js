@@ -94,18 +94,12 @@ mergeInto(LibraryManager.library, {
                         if (url) {
                             const { readable, writable } = new TransformStream();
                             stream.upload_writer = writable.getWriter();
-                            fetch(url, {
+                            stream.upload_promise = fetch(url, {
                                 method: 'PUT',
                                 body: readable,
                                 headers: {
                                     'Content-Type': 'application/octet-stream'
                                 }
-                            }).then(response => {
-                                if (!response.ok) {
-                                    console.error(response.statusText);
-                                }
-                            }).catch (err => {
-                                console.error(err);
                             });
                         }
                         // for .webm, .webm.tmp and .mpd.tmp we should open http connection
@@ -161,12 +155,11 @@ mergeInto(LibraryManager.library, {
                         // then output.mpd.tmp which is then renamed to output.mpd
                         // we keep getting writes to output.mpd - should we resend it?
                         // what does youtube want?
+                        // to deal with errors we may have to store up all the writes and then
+                        // keep retrying in close()
                     },
                     close: function (stream) {
                         console.log("CLOSE", stream.path);
-                        if (stream.upload_writer) {
-                            stream.upload_writer.close();
-                        }
                     }
                 }, intercept)
             }, intercept);
@@ -230,6 +223,26 @@ mergeInto(LibraryManager.library, {
             self.video_buf = buf;
             self.video_size = size;
             self.video_process();
+        });
+    },
+    emscripten_close_async: function (fd) {
+        return Asyncify.handleSleep(wakeUp => {
+            const stream = FS.streams[fd];
+            if (stream && stream.upload_promise) {
+                console.log("WAITING FOR RESPONSE");
+                stream.upload_writer.close();
+                // TODO: to handle errors we may need to buffer writes and do the actual request here
+                // so we can retry if necessary
+                stream.upload_promise.then(response => {
+                    if (!response.ok) {
+                        console.error(response.statusText);
+                    }
+                    wakeUp();
+                }).catch (err => {
+                    console.error(err);
+                    wakeUp();
+                });
+            }
         });
     }
 });
