@@ -7,15 +7,16 @@ LIBRARY_JS = build/library.js
 POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
-COMMON_FILTERS = aresample scale crop overlay hstack vstack
-COMMON_DEMUXERS = matroska ogg mov mp3 wav image2 concat
-COMMON_MUXERS = dash hls
+COMMON_FILTERS =
+COMMON_DEMUXERS = matroska
+COMMON_MUXERS = hls
 COMMON_ENCODERS = aac
-COMMON_DECODERS = vp8 h264 vorbis opus mp3 aac pcm_s16le mjpeg png
-COMMON_BSFS = vp9_superframe
+COMMON_DECODERS = opus
+COMMON_BSFS =
 
-WEBM_MUXERS = webm ogg null
-WEBM_ENCODERS = libvpx_vp8 libopus
+WEBM_MUXERS =
+WEBM_DECODERS =
+WEBM_ENCODERS =
 FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
 FFMPEG_WEBM_PC_PATH = ../opus/dist/lib/pkgconfig
 WEBM_SHARED_DEPS = \
@@ -23,6 +24,7 @@ WEBM_SHARED_DEPS = \
 	build/libvpx/dist/lib/libvpx.so
 
 MP4_MUXERS = mp4 mp3 null
+MP4_DECODERS = h264
 MP4_ENCODERS = libx264 libmp3lame
 FFMPEG_MP4_BC = build/ffmpeg-mp4/ffmpeg.bc
 FFMPEG_MP4_PC_PATH = ../x264/dist/lib/pkgconfig
@@ -200,6 +202,7 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	patch -p1 < ../ffmpeg-dash-nonstrict.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
+		$(addprefix --enable-decoder=,$(WEBM_DECODERS)) \
 		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
 		$(addprefix --enable-muxer=,$(WEBM_MUXERS)) \
 		--enable-libopus \
@@ -216,6 +219,7 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	patch -p1 < ../ffmpeg-dash-nonstrict.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
+		$(addprefix --enable-decoder=,$(MP4_DECODERS)) \
 		$(addprefix --enable-encoder=,$(MP4_ENCODERS)) \
 		$(addprefix --enable-muxer=,$(MP4_MUXERS)) \
 		--enable-gpl \

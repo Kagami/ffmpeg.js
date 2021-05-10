@@ -1,14 +1,6 @@
 mergeInto(LibraryManager.library, {
     emscripten_stdin_async: function (buf, size) {
         if (!self.video_started) {
-            /*const outbound_dev = FS.makedev(64, 0);
-            FS.registerDevice(outbound_dev, {
-                open: function (stream) {
-                    console.log("OPEN", stream);
-                }
-
-            });
-            FS.mkdev('/outbound-dev', outbound_dev);*/
             FS.mkdir('/outbound');
             const intercept = {
                 get: function (target, name, receiver) {
@@ -84,7 +76,6 @@ mergeInto(LibraryManager.library, {
                         files.delete(old_node.name);
                         old_node.parent.timestamp = Date.now();
                         old_node.name = new_name;
-                        //files.add(new_name);
                     }
                 }, intercept),
                 stream_ops: new Proxy({
@@ -92,9 +83,6 @@ mergeInto(LibraryManager.library, {
                         stream.upload_url = self.upload_url(stream.node.name);
                         stream.upload_data = [];
                         console.log("OPEN", stream.path, stream.upload_url);
-                        // browser can only generate webm/H264 so we need the container converted
-                        // we could write our own HTTP handler which writes out the files
-                        // and then run ffmpeg on it
                     },
                     llseek: function (stream, offset, whence) {
                         console.log("LLSEEK", stream.path, offset, whence);
@@ -119,7 +107,7 @@ mergeInto(LibraryManager.library, {
                         const node = stream.node;
                         node.timestamp = Date.now();
                         node.usedBytes = Math.max(node.usedBytes, position + length);
-                        if (stream.upload_data) {
+                        if (stream.upload_url) {
 #if ALLOW_MEMORY_GROWTH
                             if (buffer.buffer === HEAP8.buffer) {
                                 canOwn = false;
@@ -132,16 +120,10 @@ mergeInto(LibraryManager.library, {
                             }
                         }
                         return length;
-                        // we get init-stream0.webm
-                        // then chunkstream0-0001.webm.tmp which is then renamed to chunkstream0-0001.webm
-                        // then output.mpd.tmp which is then renamed to output.mpd
-                        // we keep getting writes to output.mpd - should we resend it?
-                        // what does youtube want?
-                        // to deal with errors we may have to store up all the writes and then
-                        // keep retrying in close()
                     },
                     close: function (stream) {
-                        console.log("CLOSE", stream.path);
+                        files.delete(stream.node.name);
+                        console.log("CLOSE", stream.path, files.size);
                     }
                 }, intercept)
             }, intercept);
@@ -210,20 +192,20 @@ mergeInto(LibraryManager.library, {
             const stream = FS.streams[fd];
             if (stream && stream.upload_url) {
                 console.log("MAKING REQUEST TO", stream.upload_url);
-                // TODO: handle errors by retrying
                 fetch(stream.upload_url, {
                     mode: 'no-cors',
                     method: 'POST',
-                    body: new Blob(stream.upload_data),
+                    body: new Blob(stream.upload_data)/*, no-cors so we can't set octet-stream
                     headers: {
                         'Content-Type': 'application/octet-stream'
-                    }
+                    }*/
                 }).then(response => {
                     if (!response.ok) {
-                        console.error(response.statusText);
+                        // no-cors so response is opaque and ok will always be false
+                        //console.error("RESPONSE NOT OK", stream.upload_url, response);
                     }
                 }).catch (err => {
-                    console.error(err);
+                    console.error("REQUEST ERROR", stream.upload_url, err);
                 });
             }
             wakeUp();
