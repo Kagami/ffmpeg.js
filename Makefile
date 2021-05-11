@@ -11,7 +11,7 @@ COMMON_FILTERS =
 COMMON_DEMUXERS = matroska
 COMMON_MUXERS = hls
 COMMON_ENCODERS = aac
-COMMON_DECODERS = opus
+COMMON_DECODERS = opus h264
 COMMON_BSFS =
 
 WEBM_MUXERS =
@@ -24,7 +24,7 @@ WEBM_SHARED_DEPS = \
 	build/libvpx/dist/lib/libvpx.so
 
 MP4_MUXERS = mp4 mp3 null
-MP4_DECODERS = h264
+MP4_DECODERS =
 MP4_ENCODERS = libx264 libmp3lame
 FFMPEG_MP4_BC = build/ffmpeg-mp4/ffmpeg.bc
 FFMPEG_MP4_PC_PATH = ../x264/dist/lib/pkgconfig
@@ -199,7 +199,6 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	cd build/ffmpeg-webm && \
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-async-io.patch && \
-	patch -p1 < ../ffmpeg-dash-nonstrict.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-decoder=,$(WEBM_DECODERS)) \
@@ -216,7 +215,6 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-async-io.patch && \
-	patch -p1 < ../ffmpeg-dash-nonstrict.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-decoder=,$(MP4_DECODERS)) \
