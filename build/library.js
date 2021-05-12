@@ -2,11 +2,11 @@ mergeInto(LibraryManager.library, {
     emscripten_stdin_async: function (buf, size) {
         if (!self.video_started) {
             FS.mkdir('/outbound');
-            const intercept = {
+            const check_access = {
                 get: function (target, name, receiver) {
                     const r = Reflect.get(target, name, receiver);
                     if (r === undefined) {
-                        console.log('Accessed missing property:', name);
+                        console.warning('Accessed missing property:', name);
                     }
                     return r;
                 }
@@ -14,7 +14,6 @@ mergeInto(LibraryManager.library, {
             const files = new Set();
             const ops = new Proxy({
                 mount: function (mount) {
-                    //console.log("MOUNT CALLED");
                     return ops.createNode(null, '/', ops.getMode('/'));
                 },
                 createNode: function (parent, name, mode, dev) {
@@ -25,7 +24,6 @@ mergeInto(LibraryManager.library, {
                     return node;
                 },
                 getMode: function (path) {
-                    //console.log("GETMODE", path);
                     return (path === '/' ? 0x40000 : 0x100000) | 0x777;
                 },
                 realPath: function (node) {
@@ -55,10 +53,8 @@ mergeInto(LibraryManager.library, {
                         return attr;
                     },
                     setattr: function (node, attr) {
-                        //console.log("SETATTR", node, attr);
                     },
                     lookup: function (parent, name) {
-                        //console.log("LOOKUP", name);
                         if (!files.has(name)) {
                             throw FS.genericErrors[{{{ cDefine('ENOENT') }}}];
                         }
@@ -67,25 +63,21 @@ mergeInto(LibraryManager.library, {
                         return ops.createNode(parent, name, mode);
                     },
                     mknod: function (parent, name, mode, dev) {
-                        //console.log("MKNOD", name);
                         files.add(name);
                         return ops.createNode(parent, name, mode, dev);
                     },
                     rename: function (old_node, new_dir, new_name) {
-                        console.log("RENAME", old_node.name, new_name);
                         files.delete(old_node.name);
                         old_node.parent.timestamp = Date.now();
                         old_node.name = new_name;
                     }
-                }, intercept),
+                }, check_access),
                 stream_ops: new Proxy({
                     open: function (stream) {
                         stream.upload_url = self.upload_url(stream.node.name);
                         stream.upload_data = [];
-                        console.log("OPEN", stream.path, stream.upload_url);
                     },
                     llseek: function (stream, offset, whence) {
-                        console.log("LLSEEK", stream.path, offset, whence);
                         let position = offset;
                         if (whence === {{{ cDefine('SEEK_CUR') }}}) {
                             position += stream.position;
@@ -100,7 +92,6 @@ mergeInto(LibraryManager.library, {
                         return position;
                     },
                     write: function (stream, buffer, offset, length, position, canOwn) {
-                        console.log("WRITE", stream.path, /*buffer,*/ offset, length, position);
                         if (!length) {
                             return 0;
                         }
@@ -123,10 +114,9 @@ mergeInto(LibraryManager.library, {
                     },
                     close: function (stream) {
                         files.delete(stream.node.name);
-                        console.log("CLOSE", stream.path, files.size);
                     }
-                }, intercept)
-            }, intercept);
+                }, check_access)
+            }, check_access);
             FS.mount(ops, {}, '/outbound');
             const onmessage = self.onmessage;
             self.video_queue = [];
@@ -138,8 +128,7 @@ mergeInto(LibraryManager.library, {
                 while ((self.video_queue.length > 0) && (self.video_size > 0)) {
                     const head = self.video_queue.shift();
                     const take = Math.min(head.length, self.video_size);
-                    // TOOD: Weird - Module.HEAPU8 is undefined but [] access works!
-                    Module['HEAPU8'].set(head.subarray(0, take), self.video_buf);
+                    HEAPU8.set(head.subarray(0, take), self.video_buf);
                     processed += take;
                     self.video_buf += take;
                     self.video_size -= take;
@@ -159,7 +148,6 @@ mergeInto(LibraryManager.library, {
                 const msg = e.data;
                 if (msg.type == 'video-data') {
                     self.video_queue.push(new Uint8Array(msg.data));
-                    console.log("GOT VIDEO DATA", self.video_queue.length);
                     if (self.video_handler) {
                         self.video_process();
                     }
