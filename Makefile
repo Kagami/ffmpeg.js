@@ -235,7 +235,7 @@ EMCC_COMMON_ARGS = \
         --js-library $(LIBRARY_JS) \
 	--closure 1 \
 	--memory-init-file 0 \
-	-s WASM=0 \
+	-s WASM=1 \
 	-s WASM_ASYNC_COMPILATION=0 \
 	-s ASSERTIONS=0 \
 	-s EXIT_RUNTIME=1 \
