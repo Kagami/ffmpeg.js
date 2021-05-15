@@ -195,14 +195,14 @@ FFMPEG_COMMON_CORE_ARGS = \
 	--disable-lzma \
 	--disable-sdl2 \
 	--disable-securetransport \
-	--disable-xlib \
-	--enable-zlib
+	--disable-xlib
 
 FFMPEG_COMMON_ARGS = \
 	$(FFMPEG_COMMON_CORE_ARGS) \
 	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
 	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
-	$(addprefix --enable-filter=,$(COMMON_FILTERS))
+	$(addprefix --enable-filter=,$(COMMON_FILTERS)) \
+	--enable-zlib
 
 build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	cd build/ffmpeg-webm && \
@@ -241,27 +241,30 @@ build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
 		$(addprefix --enable-muxer=,$(HLS_MUXERS)) \
 		$(addprefix --enable-decoder=,$(HLS_DECODERS)) \
 		$(addprefix --enable-encoder=,$(HLS_ENCODERS)) \
+		--disable-zlib \
 		--enable-libopus \
 		--enable-protocol=pipe \
-		--extra-cflags="-s USE_ZLIB=1" \
 		--extra-ldflags="-r" \
 		&& \
 	emmake make -j EXESUF=.bc
 
-EMCC_COMMON_ARGS = \
+EMCC_COMMON_CORE_ARGS = \
 	-O3 \
 	--closure 1 \
 	--memory-init-file 0 \
-	-s WASM=0 \
 	-s WASM_ASYNC_COMPILATION=0 \
 	-s ASSERTIONS=0 \
 	-s EXIT_RUNTIME=1 \
-	-s NODEJS_CATCH_EXIT=0 \
-	-s NODEJS_CATCH_REJECTION=0 \
 	-s TOTAL_MEMORY=67108864 \
-	-lnodefs.js -lworkerfs.js \
 	--pre-js $(PRE_JS) \
 	-o $@
+
+EMCC_COMMON_ARGS = \
+	$(EMCC_COMMON_CORE_ARGS) \
+	-s NODEJS_CATCH_EXIT=0 \
+	-s NODEJS_CATCH_REJECTION=0 \
+	-lnodefs.js -lworkerfs.js \
+	-s WASM=0
 
 ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_SYNC)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
@@ -286,7 +289,7 @@ ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
 ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm: $(FFMPEG_HLS_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_HLS_JS)
 	emcc $(FFMPEG_HLS_BC) $(HLS_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
-		$(EMCC_COMMON_ARGS) \
+		$(EMCC_COMMON_CORE_ARGS) \
 		--js-library $(LIBRARY_HLS_JS) \
 		-s WASM=1 \
 		-s ASYNCIFY \
