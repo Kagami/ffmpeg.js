@@ -3,20 +3,16 @@
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
 PRE_JS = build/pre.js
-LIBRARY_JS = build/library.js
 POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
-COMMON_FILTERS =
-COMMON_DEMUXERS = matroska
-COMMON_MUXERS = hls
-COMMON_ENCODERS = aac
-COMMON_DECODERS = opus
-COMMON_BSFS =
+# Components common to webm and mp4, not for hls
+COMMON_FILTERS = aresample scale crop overlay hstack vstack
+COMMON_DEMUXERS = matroska ogg mov mp3 wav image2 concat
+COMMON_DECODERS = vp8 h264 vorbis opus mp3 aac pcm_s16le mjpeg png
 
-WEBM_MUXERS =
-WEBM_DECODERS =
-WEBM_ENCODERS =
+WEBM_MUXERS = webm ogg null
+WEBM_ENCODERS = libvpx_vp8 libopus
 FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
 FFMPEG_WEBM_PC_PATH = ../opus/dist/lib/pkgconfig
 WEBM_SHARED_DEPS = \
@@ -24,23 +20,35 @@ WEBM_SHARED_DEPS = \
 	build/libvpx/dist/lib/libvpx.so
 
 MP4_MUXERS = mp4 mp3 null
-MP4_DECODERS = h264
-MP4_ENCODERS = libx264 libmp3lame
+MP4_ENCODERS = libx264 libmp3lame aac
 FFMPEG_MP4_BC = build/ffmpeg-mp4/ffmpeg.bc
 FFMPEG_MP4_PC_PATH = ../x264/dist/lib/pkgconfig
 MP4_SHARED_DEPS = \
 	build/lame/dist/lib/libmp3lame.so \
 	build/x264/dist/lib/libx264.so
 
-all: webm mp4
+LIBRARY_HLS_JS = build/library-hls.js
+HLS_DEMUXERS = matroska
+HLS_MUXERS = hls
+HLS_DECODERS = opus # add h264 to get rid of DTS warnings but beware patents!
+HLS_ENCODERS = aac
+FFMPEG_HLS_BC = build/ffmpeg-hls/ffmpeg.bc
+FFMPEG_HLS_PC_PATH = ../opus/dist/lib/pkgconfig
+HLS_SHARED_DEPS = build/opus/dist/lib/libopus.so
+
+all: webm mp4 hls
 webm: ffmpeg-webm.js ffmpeg-worker-webm.js
 mp4: ffmpeg-mp4.js ffmpeg-worker-mp4.js
+hls: ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm
 
-clean: clean-js \
+clean: clean-js clean-wasm \
 	clean-opus clean-libvpx clean-ffmpeg-webm \
-	clean-lame clean-x264 clean-ffmpeg-mp4
+	clean-lame clean-x264 clean-ffmpeg-mp4 \
+	clean-ffmpeg-hls
 clean-js:
 	rm -f ffmpeg*.js
+clean-wasm:
+	rm -f ffmpeg*.wasm
 clean-opus:
 	cd build/opus && git clean -xdf
 clean-libvpx:
@@ -53,6 +61,8 @@ clean-x264:
 	cd build/x264 && git clean -xdf
 clean-ffmpeg-mp4:
 	cd build/ffmpeg-mp4 && git clean -xdf
+clean-ffmpeg-hls:
+	cd build/ffmpeg-hls && git clean -xdf
 
 build/opus/configure:
 	cd build/opus && ./autogen.sh
@@ -150,7 +160,7 @@ build/x264/dist/lib/libx264.so:
 # - <https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html>
 # - <https://github.com/kripken/emscripten/issues/831>
 # - <https://ffmpeg.org/pipermail/libav-user/2013-February/003698.html>
-FFMPEG_COMMON_ARGS = \
+FFMPEG_COMMON_CORE_ARGS = \
 	--cc=emcc \
 	--ranlib=emranlib \
 	--enable-cross-compile \
@@ -178,14 +188,7 @@ FFMPEG_COMMON_ARGS = \
 	--disable-dxva2 \
 	--disable-vaapi \
 	--disable-vdpau \
-	$(addprefix --enable-bsf=,$(COMMON_BSFS)) \
-	$(addprefix --enable-encoder=,$(COMMON_ENCODERS)) \
-	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
-	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
-	$(addprefix --enable-muxer=,$(COMMON_MUXERS)) \
 	--enable-protocol=file \
-	--enable-protocol=pipe \
-	$(addprefix --enable-filter=,$(COMMON_FILTERS)) \
 	--disable-bzlib \
 	--disable-iconv \
 	--disable-libxcb \
@@ -195,13 +198,16 @@ FFMPEG_COMMON_ARGS = \
 	--disable-xlib \
 	--enable-zlib
 
+FFMPEG_COMMON_ARGS = \
+	$(FFMPEG_COMMON_CORE_ARGS) \
+	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
+	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
+	$(addprefix --enable-filter=,$(COMMON_FILTERS))
+
 build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 	cd build/ffmpeg-webm && \
-	git reset --hard && \
-	patch -p1 < ../ffmpeg-async-io.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
-		$(addprefix --enable-decoder=,$(WEBM_DECODERS)) \
 		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
 		$(addprefix --enable-muxer=,$(WEBM_MUXERS)) \
 		--enable-libopus \
@@ -213,11 +219,8 @@ build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
 
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
-	git reset --hard && \
-	patch -p1 < ../ffmpeg-async-io.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
-		$(addprefix --enable-decoder=,$(MP4_DECODERS)) \
 		$(addprefix --enable-encoder=,$(MP4_ENCODERS)) \
 		$(addprefix --enable-muxer=,$(MP4_MUXERS)) \
 		--enable-gpl \
@@ -228,14 +231,28 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 		&& \
 	emmake make -j EXESUF=.bc
 
+build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
+	cd build/ffmpeg-hls && \
+	git reset --hard && \
+	patch -p1 < ../ffmpeg-async-io.patch && \
+	EM_PKG_CONFIG_PATH=$(FFMPEG_HLS_PC_PATH) emconfigure ./configure \
+		$(FFMPEG_COMMON_CORE_ARGS) \
+		$(addprefix --enable-demuxer=,$(HLS_DEMUXERS)) \
+		$(addprefix --enable-muxer=,$(HLS_MUXERS)) \
+		$(addprefix --enable-decoder=,$(HLS_DECODERS)) \
+		$(addprefix --enable-encoder=,$(HLS_ENCODERS)) \
+		--enable-libopus \
+		--enable-protocol=pipe \
+		--extra-cflags="-s USE_ZLIB=1" \
+		--extra-ldflags="-r" \
+		&& \
+	emmake make -j EXESUF=.bc
+
 EMCC_COMMON_ARGS = \
 	-O3 \
-        -s ASYNCIFY \
-        -s 'ASYNCIFY_IMPORTS=["emscripten_stdin_async", "emscripten_close_async"]' \
-        --js-library $(LIBRARY_JS) \
 	--closure 1 \
 	--memory-init-file 0 \
-	-s WASM=1 \
+	-s WASM=0 \
 	-s WASM_ASYNC_COMPILATION=0 \
 	-s ASSERTIONS=0 \
 	-s EXIT_RUNTIME=1 \
@@ -251,7 +268,7 @@ ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_SYNC)
 		--post-js $(POST_JS_SYNC) \
 		$(EMCC_COMMON_ARGS)
 
-ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_JS)
+ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_ARGS)
@@ -259,9 +276,18 @@ ffmpeg-worker-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_J
 ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_SYNC)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_SYNC) \
-		$(EMCC_COMMON_ARGS)
+		$(EMCC_COMMON_ARGS) -O2
 
-ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_JS)
+ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
-		$(EMCC_COMMON_ARGS)
+		$(EMCC_COMMON_ARGS) -O2
+
+ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm: $(FFMPEG_HLS_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_HLS_JS)
+	emcc $(FFMPEG_HLS_BC) $(HLS_SHARED_DEPS) \
+		--post-js $(POST_JS_WORKER) \
+		$(EMCC_COMMON_ARGS) \
+		--js-library $(LIBRARY_HLS_JS) \
+		-s WASM=1 \
+		-s ASYNCIFY \
+	        -s 'ASYNCIFY_IMPORTS=["emscripten_stdin_async", "emscripten_close_async"]'
