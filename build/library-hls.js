@@ -119,6 +119,7 @@ mergeInto(LibraryManager.library, {
             }, check_access);
             FS.mount(ops, {}, '/outbound');
             const onmessage = self.onmessage;
+            self.video_ended = false;
             self.video_queue = [];
             self.video_handler = null;
             self.video_buf = null;
@@ -136,7 +137,7 @@ mergeInto(LibraryManager.library, {
                         self.video_queue.unshift(head.subarray(take));
                     }
                 }
-                if (processed > 0) {
+                if ((processed > 0) || self.video_ended) {
                     const handler = self.video_handler;
                     self.video_handler = null;
                     self.video_buf = null;
@@ -158,6 +159,11 @@ mergeInto(LibraryManager.library, {
                         }
                         return null;
                     };
+                } else if (msg.type == 'video-ended') {
+                    self.video_ended = true;
+                    if (self.video_handler) {
+                        self.video_process();
+                    }
                 } else {
                     onmessage.apply(this, arguments);
                 }
