@@ -28,7 +28,8 @@ MP4_SHARED_DEPS = \
 	build/x264/dist/lib/libx264.so
 
 LIBRARY_HLS_JS = build/library-hls.js
-HLS_DEMUXERS = matroska
+HLS_DEMUXERS = matroska # add mov for Safari support but beware patents!
+HLS_BSFS = # add h264_mp4toannexb for Safari support but beware patents!
 HLS_MUXERS = hls
 HLS_DECODERS = opus # add h264 to get rid of DTS warnings but beware patents!
 HLS_ENCODERS = aac
@@ -242,6 +243,7 @@ build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
 		$(addprefix --enable-muxer=,$(HLS_MUXERS)) \
 		$(addprefix --enable-decoder=,$(HLS_DECODERS)) \
 		$(addprefix --enable-encoder=,$(HLS_ENCODERS)) \
+		$(addprefix --enable-bsf=,$(HLS_BSFS)) \
 		--disable-zlib \
 		--enable-libopus \
 		--enable-protocol=pipe \
