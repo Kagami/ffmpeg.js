@@ -6,7 +6,7 @@ index 8303436be0..4aa206859e 100644
  #include "os_support.h"
  #include "url.h"
  
-+extern int emscripten_stdin_async(unsigned char* buf, int size);
++extern int emscripten_read_async(int fd, unsigned char* buf, int size);
 +extern void emscripten_close_async(int fd);
 +
  /* Some systems may not have S_ISFIFO */
@@ -17,8 +17,8 @@ index 8303436be0..4aa206859e 100644
      int ret;
      size = FFMIN(size, c->blocksize);
 -    ret = read(c->fd, buf, size);
-+    if (c->fd == 0) {
-+        ret = emscripten_stdin_async(buf, size);
++    if ((c->fd == 3) || (c->fd == 4)) {
++        ret = emscripten_read_async(c->fd, buf, size);
 +    } else {
 +        ret = read(c->fd, buf, size);
 +    }

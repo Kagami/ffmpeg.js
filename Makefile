@@ -296,4 +296,4 @@ ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm: $(FFMPEG_HLS_BC) $(PRE_JS) $(POST_J
 		--js-library $(LIBRARY_HLS_JS) \
 		-s WASM=1 \
 		-s ASYNCIFY \
-	        -s 'ASYNCIFY_IMPORTS=["emscripten_stdin_async", "emscripten_close_async"]'
+	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async"]'
