@@ -1,6 +1,6 @@
 mergeInto(LibraryManager.library, {
     emscripten_read_async: function (fd, buf, size) {
-        if (!self.video_started) {
+        if (!self.stream_started) {
             FS.mkdir('/outbound');
             const check_access = {
                 get: function (target, name, receiver) {
@@ -119,75 +119,80 @@ mergeInto(LibraryManager.library, {
             }, check_access);
             FS.mount(ops, {}, '/outbound');
             const onmessage = self.onmessage;
-            self.video_ended = false;
-            self.video_queues = new Map();
-            self.video_handlers = new Map();
-            self.video_bufs = new Map();
-            self.video_sizes = new Map();
-            self.video_process = function (name) {
+            self.stream_ended = false;
+            self.stream_queues = new Map();
+            self.stream_handlers = new Map();
+            self.stream_bufs = new Map();
+            self.stream_sizes = new Map();
+            self.stream_process = function (name) {
                 let processed = 0;
-                while (self.video_queues.has(name) &&
-                       (self.video_queues.get(name).length > 0) &&
-                       (self.video_sizes.get(name) > 0)) {
-                    const queue = self.video_queues.get(name);
-                    const buf = self.video_bufs.get(name);
-                    const size = self.video_sizes.get(name);
+                while (self.stream_queues.has(name) &&
+                       (self.stream_queues.get(name).length > 0) &&
+                       (self.stream_sizes.get(name) > 0)) {
+                    const queue = self.stream_queues.get(name);
+                    const buf = self.stream_bufs.get(name);
+                    const size = self.stream_sizes.get(name);
                     const head = queue.shift();
                     const take = Math.min(head.length, size);
                     HEAPU8.set(head.subarray(0, take), buf);
                     processed += take;
-                    self.video_bufs.set(name, buf + take);
-                    self.video_sizes.set(name, size - take);
+                    self.stream_bufs.set(name, buf + take);
+                    self.stream_sizes.set(name, size - take);
                     if (take < head.length) {
                         queue.unshift(head.subarray(take));
                     }
                 }
-                if ((processed > 0) || self.video_ended) {
-                    const handler = self.video_handlers.get(name);
-                    self.video_handlers.delete(name);
-                    self.video_bufs.delete(name);
-                    self.video_sizes.delete(name);
+                if ((processed > 0) || self.stream_ended) {
+                    const handler = self.stream_handlers.get(name);
+                    self.stream_handlers.delete(name);
+                    self.stream_bufs.delete(name);
+                    self.stream_sizes.delete(name);
                     handler(processed);
                 }
             };
             self.onmessage = function (e) {
-                const msg = e.data;
-                if (msg.type == 'video-data') {
-                    if (!self.video_queues.has(msg.name)) {
-                        self.video_queues.set(msg.name, []);
-                    }
-                    self.video_queues.get(msg.name).push(new Uint8Array(msg.data));
-                    if (self.video_handlers.has(msg.name)) {
-                        self.video_process(msg.name);
-                    }
-                } else if (msg.type === 'base-url') {
-                    self.upload_url = function (name) {
-                        if (name.endsWith('.ts') || name.endsWith('.tmp')) {
-                            return msg.data + name.replace(/\.tmp$/, '');
+                const msg = e['data'];
+                switch (msg['type']) {
+                    case 'stream-data':
+                        if (!self.stream_queues.has(msg['name'])) {
+                            self.stream_queues.set(msg['name'], []);
                         }
-                        return null;
-                    };
-                } else if (msg.type == 'video-ended') {
-                    self.video_ended = true;
-                    for (let h of self.video_handlers.keys()) {
-                        self.video_process(h);
-                    }
-                } else {
-                    onmessage.apply(this, arguments);
+                        self.stream_queues.get(msg['name']).push(new Uint8Array(msg['data']));
+                        if (self.stream_handlers.has(msg['name'])) {
+                            self.stream_process(msg['name']);
+                        }
+                        break;
+                    case 'base-url':
+                        self.upload_url = function (name) {
+                            if (name.endsWith('.ts') || name.endsWith('.tmp')) {
+                                return msg['data'] + name.replace(/\.tmp$/, '');
+                            }
+                            return null;
+                        };
+                        break;
+                    case 'stream-end':
+                        self.stream_ended = true;
+                        for (let h of self.stream_handlers.keys()) {
+                            self.stream_process(h);
+                        }
+                        break;
+                    default:
+                        onmessage.apply(this, arguments);
+                        break;
                 }
             };
-            self.postMessage({type: 'start-video'});
-            self.video_started = true;
+            self.postMessage({type: 'start-stream'});
+            self.stream_started = true;
         }
         return Asyncify.handleSleep(wakeUp => {
             if (size <= 0) {
                 return wakeUp(0);
             }
             const name = FS.streams[fd].node.name;
-            self.video_handlers.set(name, wakeUp);
-            self.video_bufs.set(name, buf);
-            self.video_sizes.set(name, size);
-            self.video_process(name);
+            self.stream_handlers.set(name, wakeUp);
+            self.stream_bufs.set(name, buf);
+            self.stream_sizes.set(name, size);
+            self.stream_process(name);
         });
     },
     emscripten_close_async: function (fd) {
