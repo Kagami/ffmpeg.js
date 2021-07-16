@@ -239,6 +239,7 @@ build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-async-io.patch && \
 	patch -p1 < ../ffmpeg-hls-configure.patch && \
+	patch -p1 < ../ffmpeg-exit.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_HLS_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_CORE_ARGS) \
 		$(addprefix --enable-demuxer=,$(HLS_DEMUXERS)) \

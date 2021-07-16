@@ -218,5 +218,12 @@ mergeInto(LibraryManager.library, {
             }
             wakeUp();
         });
+    },
+    emscripten_exit: function (code) {
+        self.postMessage({
+            type: 'ffexit',
+            code
+        });
+        return code;
     }
 });
