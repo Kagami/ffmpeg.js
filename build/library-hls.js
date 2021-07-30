@@ -99,6 +99,10 @@ mergeInto(LibraryManager.library, {
                         node.timestamp = Date.now();
                         node.usedBytes = Math.max(node.usedBytes, position + length);
                         if (stream.upload_url) {
+                            if (!self.stream_sending) {
+                                self.stream_sending = true;
+                                self.postMessage({type: 'sending'});
+                            }
 #if ALLOW_MEMORY_GROWTH
                             if (buffer.buffer === HEAP8.buffer) {
                                 canOwn = false;
@@ -120,6 +124,7 @@ mergeInto(LibraryManager.library, {
             FS.mount(ops, {}, '/outbound');
             const onmessage = self.onmessage;
             self.stream_ended = false;
+            self.stream_sending = false;
             self.stream_queues = new Map();
             self.stream_handlers = new Map();
             self.stream_bufs = new Map();
