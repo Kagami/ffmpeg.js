@@ -11,6 +11,7 @@ Currently available builds (additional builds may be added in future):
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
 * `ffmpeg-mp4.js` - MP4 encoding (H.264 & AAC & MP3 encoders, popular decoders).
 * `ffmpeg-worker-mp4.js` - Web Worker version of `ffmpeg-mp4.js`.
+* `ffmpeg-worker-hls.js` - HLS (HTTP Live Streaming) in a Web Worker. Data is MPEG2-TS encoded and POSTed via HTTP. Note this uses Web Assembly.
 
 Note: only NPM releases contain abovementioned files.
 
@@ -61,10 +62,41 @@ ffmpeg.js also provides wrapper for main function with Web Worker interface to o
 * `{type: "done", data: "<result>"}` - Job finished with some result.
 * `{type: "error", data: "<error description>"}` - Error occurred.
 * `{type: "abort", data: "<abort reason>"}` - FFmpeg terminated abnormally (e.g. out of memory, wasm error).
+* For HLS:
+  * `{type: "start-stream"} - FFmpeg is ready to stream data (application should start posting `stream-data` messages).
+  * `{type: "sending"} - Sent once when data starts to be POSTed.
+  * `{type: "ffexit", code: "<code>"}` - FFmpeg exited with status code.
 
 You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
-
+  * For HLS, you should typically send something based on this:
+    ```js
+    type: 'run',
+    arguments: [
+        '-loglevel', 'debug',
+        '-seekable', '0',
+        '-i', '/work/stream1',
+        '-map', '0:v',
+        '-map', '0:a',
+        '-c:v', 'copy', // assumes video is already in desired encoding
+        '-c:a', 'copy', // assumes audio is already in desited encoding
+        '-f', 'hls', // use hls encoder
+        '-hls_time', '2', // 2 second HLS chunks
+        '-hls_segment_type', 'mpegts', // MPEG2-TS muxer
+        '-hls_list_size', '2', // two chunks in the list at a time
+        '-hls_flags', 'split_by_time',
+        '/outbound/output.m3u8' // path to media playlist file in virtual FS,
+                                // must be under /outbound
+    ],
+    MEMFS: [
+        { name: 'stream1' },
+        { name: 'stream2' }
+    ]
+```
+* For HLS:
+  * `{type: "base-url", upload_url: "<url>"}` - Sets the URL to stream (POST) data to. The generated HLS chunk filenames are appended to this. Send this before sending any `stream-data`.
+  * `{type: "stream-data", name: "<filename>", data: "<data>"}` - Data (audio/video/muxed) to supply to FFmpeg. `filename` must match an argument passed to FFmpeg via a `-i` option (up to two files are supported). `data` is an `ArrayBuffer`.
+  * `{type: "stream-end"}` - End all input streams (FFmpeg will exit after this).
 ```js
 const worker = new Worker("ffmpeg-worker-webm.js");
 worker.onmessage = function(e) {
