@@ -26,3 +26,6 @@
 	path = build/ffmpeg-hls
 	url = https://git.ffmpeg.org/ffmpeg.git
 	ignore = dirty
+[submodule "build/ffmpeg-dash"]
+	path = build/ffmpeg-dash
+	url = https://git.ffmpeg.org/ffmpeg.git

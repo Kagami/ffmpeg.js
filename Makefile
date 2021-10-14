@@ -6,7 +6,7 @@ PRE_JS = build/pre.js
 POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
-# Components common to webm and mp4, not for hls
+# Components common to webm and mp4, not for hls and dash
 COMMON_FILTERS = aresample scale crop overlay hstack vstack
 COMMON_DEMUXERS = matroska ogg mov mp3 wav image2 concat
 COMMON_DECODERS = vp8 h264 vorbis opus mp3 aac pcm_s16le mjpeg png
@@ -31,7 +31,7 @@ LIBRARY_HLS_JS = build/library-hls.js
 HLS_DEMUXERS = matroska pcm_f32le # add mov for Safari support but beware patents!
 HLS_BSFS = # add h264_mp4toannexb for Safari support but beware patents!
 HLS_MUXERS = hls
-HLS_DECODERS = opus pcm_f32le # add h264 to get rid of DTS warnings but beware patents!
+HLS_DECODERS = libopus pcm_f32le # add h264 to get rid of DTS warnings but beware patents!
 HLS_ENCODERS = aac
 HLS_FILTERS = aresample
 HLS_PARSERS = opus
@@ -39,15 +39,20 @@ FFMPEG_HLS_BC = build/ffmpeg-hls/ffmpeg.bc
 FFMPEG_HLS_PC_PATH = ../opus/dist/lib/pkgconfig
 HLS_SHARED_DEPS = build/opus/dist/lib/libopus.so
 
-all: webm mp4 hls
+LIBRARY_DASH_JS = build/library-dash.js
+DASH_MUXERS = dash
+FFMPEG_DASH_BC = build/ffmpeg-dash/ffmpeg.bc
+
+all: webm mp4 hls dash
 webm: ffmpeg-webm.js ffmpeg-worker-webm.js
 mp4: ffmpeg-mp4.js ffmpeg-worker-mp4.js
 hls: ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm
+dash: ffmpeg-worker-dash.js ffmpeg-worker-dash.wasm
 
 clean: clean-js clean-wasm \
 	clean-opus clean-libvpx clean-ffmpeg-webm \
 	clean-lame clean-x264 clean-ffmpeg-mp4 \
-	clean-ffmpeg-hls
+	clean-ffmpeg-hls clean-ffmpeg-dash
 clean-js:
 	rm -f ffmpeg*.js
 clean-wasm:
@@ -66,6 +71,8 @@ clean-ffmpeg-mp4:
 	cd build/ffmpeg-mp4 && git clean -xdf
 clean-ffmpeg-hls:
 	cd build/ffmpeg-hls && git clean -xdf
+clean-ffmpeg-dash:
+	cd build/ffmpeg-dash && git clean -xdf
 
 build/opus/configure:
 	cd build/opus && ./autogen.sh
@@ -256,6 +263,22 @@ build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
 		&& \
 	emmake make -j EXESUF=.bc
 
+build/ffmpeg-dash/ffmpeg.bc:
+	cd build/ffmpeg-dash && \
+	git reset --hard && \
+	patch -p1 < ../ffmpeg-async-io.patch && \
+	patch -p1 < ../ffmpeg-dash-configure.patch && \
+	patch -p1 < ../ffmpeg-dash-codecs.patch && \
+	patch -p1 < ../ffmpeg-exit.patch && \
+	emconfigure ./configure \
+		$(FFMPEG_COMMON_CORE_ARGS) \
+		$(addprefix --enable-muxer=,$(DASH_MUXERS)) \
+		--disable-zlib \
+		--enable-protocol=pipe \
+		--extra-ldflags="-r" \
+		&& \
+	emmake make -j EXESUF=.bc
+
 EMCC_COMMON_CORE_ARGS = \
 	-O3 \
 	--closure 1 \
@@ -299,6 +322,15 @@ ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm: $(FFMPEG_HLS_BC) $(PRE_JS) $(POST_J
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_CORE_ARGS) \
 		--js-library $(LIBRARY_HLS_JS) \
+		-s WASM=1 \
+		-s ASYNCIFY \
+	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async"]'
+
+ffmpeg-worker-dash.js ffmpeg-worker-dash.wasm: $(FFMPEG_DASH_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_DASH_JS)
+	emcc $(FFMPEG_DASH_BC) \
+		--post-js $(POST_JS_WORKER) \
+		$(EMCC_COMMON_CORE_ARGS) \
+		--js-library $(LIBRARY_DASH_JS) \
 		-s WASM=1 \
 		-s ASYNCIFY \
 	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async"]'

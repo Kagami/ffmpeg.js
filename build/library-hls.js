@@ -167,14 +167,16 @@ mergeInto(LibraryManager.library, {
                             self.stream_process(msg['name']);
                         }
                         break;
-                    case 'base-url':
+                    case 'base-url': {
+                        const ext = msg['protocol'] === 'dash' ? '.webm' : '.ts';
                         self.upload_url = function (name) {
-                            if (name.endsWith('.ts') || name.endsWith('.tmp')) {
+                            if (name.endsWith(ext) || name.endsWith('.tmp')) {
                                 return msg['data'] + name.replace(/\.tmp$/, '');
                             }
                             return null;
                         };
                         break;
+                    }
                     case 'stream-end':
                         self.stream_ended = true;
                         for (let h of self.stream_handlers.keys()) {
