@@ -29,3 +29,4 @@
 [submodule "build/ffmpeg-dash"]
 	path = build/ffmpeg-dash
 	url = https://git.ffmpeg.org/ffmpeg.git
+	ignore = dirty
