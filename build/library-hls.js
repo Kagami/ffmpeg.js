@@ -180,7 +180,7 @@ mergeInto(LibraryManager.library, {
                             }
                             return null;
                         };
-                        self.upload_method = msg['method'] || 'POST';
+                        self.upload_options = msg['options'];
                         break;
                     }
                     case 'stream-end':
@@ -213,14 +213,15 @@ mergeInto(LibraryManager.library, {
             const stream = FS.streams[fd];
             if (stream && stream.upload_url) {
                 console.log("MAKING REQUEST TO", stream.upload_url);
-                fetch(stream.upload_url, {
+                fetch(stream.upload_url, Object.assign({
                     mode: 'no-cors',
-                    method: self.upload_method,
-                    body: new Blob(stream.upload_data)/*, no-cors so we can't set octet-stream
+                    method: 'POST',
+                    /* no-cors so we can't set octet-stream
                     headers: {
                         'Content-Type': 'application/octet-stream'
                     }*/
-                }).then(response => {
+                    body: new Blob(stream.upload_data)
+                }, self.upload_options)).then(response => {
                     if (!response.ok) {
                         // no-cors so response is opaque and ok will always be false
                         //console.error("RESPONSE NOT OK", stream.upload_url, response);
