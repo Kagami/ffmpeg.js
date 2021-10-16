@@ -6,7 +6,7 @@ mergeInto(LibraryManager.library, {
                 get: function (target, name, receiver) {
                     const r = Reflect.get(target, name, receiver);
                     if (r === undefined) {
-                        console.warning('Accessed missing property:', name);
+                        console.warn('Accessed missing property:', name, target);
                     }
                     return r;
                 }
@@ -70,6 +70,9 @@ mergeInto(LibraryManager.library, {
                         files.delete(old_node.name);
                         old_node.parent.timestamp = Date.now();
                         old_node.name = new_name;
+                    },
+                    unlink: function (parent, name) {
+                        files.delete(name);
                     }
                 }, check_access),
                 stream_ops: new Proxy({
@@ -168,10 +171,12 @@ mergeInto(LibraryManager.library, {
                         }
                         break;
                     case 'base-url': {
-                        const ext = msg['protocol'] === 'dash' ? '.webm' : '.ts';
                         self.upload_url = function (name) {
-                            if (name.endsWith(ext) || name.endsWith('.tmp')) {
-                                return msg['data'] + name.replace(/\.tmp$/, '');
+                            if (name.endsWith('.webm') ||
+                                name.endsWith('.m4s') ||
+                                name.endsWith('.ts') ||
+                                name.endsWith('.tmp')) {
+                                return msg['data'] + name.replace(/\.tmp$/, '').replace(/\.m4s$/, '.mp4');
                             }
                             return null;
                         };

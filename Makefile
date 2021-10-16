@@ -40,7 +40,13 @@ FFMPEG_HLS_PC_PATH = ../opus/dist/lib/pkgconfig
 HLS_SHARED_DEPS = build/opus/dist/lib/libopus.so
 
 LIBRARY_DASH_JS = build/library-dash.js
-DASH_MUXERS = dash
+DASH_DEMUXERS = matroska
+DASH_BSFS = vp9_superframe
+DASH_MUXERS = dash webm
+DASH_DECODERS =
+DASH_ENCODERS =
+DASH_FILTERS =
+DASH_PARSERS = vp9 opus
 FFMPEG_DASH_BC = build/ffmpeg-dash/ffmpeg.bc
 
 all: webm mp4 hls dash
@@ -272,7 +278,13 @@ build/ffmpeg-dash/ffmpeg.bc:
 	patch -p1 < ../ffmpeg-exit.patch && \
 	emconfigure ./configure \
 		$(FFMPEG_COMMON_CORE_ARGS) \
+		$(addprefix --enable-demuxer=,$(DASH_DEMUXERS)) \
 		$(addprefix --enable-muxer=,$(DASH_MUXERS)) \
+		$(addprefix --enable-decoder=,$(DASH_DECODERS)) \
+		$(addprefix --enable-encoder=,$(DASH_ENCODERS)) \
+		$(addprefix --enable-bsf=,$(DASH_BSFS)) \
+		$(addprefix --enable-filter=,$(DASH_FILTERS)) \
+		$(addprefix --enable-parser=,$(DASH_PARSERS)) \
 		--disable-zlib \
 		--enable-protocol=pipe \
 		--extra-ldflags="-r" \
