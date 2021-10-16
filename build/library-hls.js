@@ -180,6 +180,7 @@ mergeInto(LibraryManager.library, {
                             }
                             return null;
                         };
+                        self.upload_method = msg['method'] || 'POST';
                         break;
                     }
                     case 'stream-end':
@@ -214,7 +215,7 @@ mergeInto(LibraryManager.library, {
                 console.log("MAKING REQUEST TO", stream.upload_url);
                 fetch(stream.upload_url, {
                     mode: 'no-cors',
-                    method: 'POST',
+                    method: self.upload_method,
                     body: new Blob(stream.upload_data)/*, no-cors so we can't set octet-stream
                     headers: {
                         'Content-Type': 'application/octet-stream'
