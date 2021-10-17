@@ -12,7 +12,7 @@ Currently available builds (additional builds may be added in future):
 * `ffmpeg-mp4.js` - MP4 encoding (H.264 & AAC & MP3 encoders, popular decoders).
 * `ffmpeg-worker-mp4.js` - Web Worker version of `ffmpeg-mp4.js`.
 * `ffmpeg-worker-hls.js` - HLS (HTTP Live Streaming) in a Web Worker. Data is MPEG2-TS encoded and POSTed via HTTP. Note this uses Web Assembly.
-* `ffmpeg-worker-dash.js` - DASH (Dynamic Adaptive Streaming over HTTP) in a Web Worker. Data is PUT or POSTED  via HTTP. Note this uses Web Assembly.
+* `ffmpeg-worker-dash.js` - DASH (Dynamic Adaptive Streaming over HTTP) in a Web Worker. Data is POSTed via HTTP. Note this uses Web Assembly.
 
 Note: only NPM releases contain abovementioned files.
 
@@ -119,7 +119,7 @@ You can send the following messages to the worker:
     ]
 ```
 * For HLS and DASH:
-  * `{type: "base-url", data: "<upload-url>", protocol: "hls|dash", options: "<fetch request options>}` - Sets the URL to stream data to. The generated HLS or DASH chunk filenames are appended to this. Send this before sending any `stream-data`. Default method is POST for HLS and PUT for DASH.
+  * `{type: "base-url", data: "<upload-url>", protocol: "hls|dash", options: "<fetch request options>}` - Sets the URL to stream data to. The generated HLS or DASH chunk filenames are appended to this. Send this before sending any `stream-data`. Default method is POST but you can change this using the request options.
   * `{type: "stream-data", name: "<filename>", data: "<data>"}` - Data (audio/video/muxed) to supply to FFmpeg. `filename` must match an argument passed to FFmpeg via a `-i` option (up to two files are supported). `data` is an `ArrayBuffer`.
   * `{type: "stream-end"}` - End all input streams (FFmpeg will exit after this).
 
