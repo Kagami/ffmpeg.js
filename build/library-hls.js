@@ -213,19 +213,27 @@ mergeInto(LibraryManager.library, {
             const stream = FS.streams[fd];
             if (stream && stream.upload_url) {
                 console.log("MAKING REQUEST TO", stream.upload_url);
-                const options = Object.assign({
-                    mode: 'no-cors',
-                    method: 'POST',
-                    body: new Blob(stream.upload_data)
-                }, self.upload_options);
-                fetch(stream.upload_url, options).then(response => {
-                    // note: with no-cors, response is opaque and ok will always be false
-                    if (!response.ok && (options.mode !== 'no-cors')) {
-                        console.error("RESPONSE NOT OK", stream.upload_url, response);
-                    }
-                }).catch (err => {
-                    console.error("REQUEST ERROR", stream.upload_url, err);
-                });
+                if (stream.upload_url.startsWith('postMessage:')) {
+                    self.postMessage(Object.assign({
+                        type: 'upload',
+                        url: stream.upload_url,
+                        data: stream.upload_data
+                    }, self.upload_options), stream.upload_data);
+                } else {
+                    const options = Object.assign({
+                        mode: 'no-cors',
+                        method: 'POST',
+                        body: new Blob(stream.upload_data)
+                    }, self.upload_options);
+                    fetch(stream.upload_url, options).then(response => {
+                        // note: with no-cors, response is opaque and ok will always be false
+                        if (!response.ok && (options.mode !== 'no-cors')) {
+                            console.error("RESPONSE NOT OK", stream.upload_url, response);
+                        }
+                    }).catch (err => {
+                        console.error("REQUEST ERROR", stream.upload_url, err);
+                    });
+                }
             }
             wakeUp();
         });
