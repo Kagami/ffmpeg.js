@@ -213,17 +213,19 @@ mergeInto(LibraryManager.library, {
             const stream = FS.streams[fd];
             if (stream && stream.upload_url) {
                 console.log("MAKING REQUEST TO", stream.upload_url);
+                const upload_data = new Blob(stream.upload_data);
                 if (stream.upload_url.startsWith('postMessage:')) {
+                    const upload_stream = upload_data.stream();
                     self.postMessage(Object.assign({
                         type: 'upload',
                         url: stream.upload_url,
-                        data: stream.upload_data
-                    }, self.upload_options), stream.upload_data);
+                        stream: upload_stream
+                    }, self.upload_options), [upload_stream]);
                 } else {
                     const options = Object.assign({
                         mode: 'no-cors',
                         method: 'POST',
-                        body: new Blob(stream.upload_data)
+                        body: upload_data
                     }, self.upload_options);
                     fetch(stream.upload_url, options).then(response => {
                         // note: with no-cors, response is opaque and ok will always be false
