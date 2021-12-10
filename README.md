@@ -67,6 +67,7 @@ ffmpeg.js also provides wrapper for main function with Web Worker interface to o
   * `{type: "start-stream"} - FFmpeg is ready to stream data (application should start posting `stream-data` messages).
   * `{type: "sending"} - Sent once when data starts to be POSTed.
   * `{type: "ffexit", code: "<code>"}` - FFmpeg exited with status code.
+  * `{type: "upload", stream: "<chunk as ReadableStream>", url: "<chunk filename>"}` - Only if upload URL starts with `postMessage:` (see below).
 
 You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
@@ -120,6 +121,7 @@ You can send the following messages to the worker:
 ```
 * For HLS and DASH:
   * `{type: "base-url", data: "<upload-url>", protocol: "hls|dash", options: "<fetch request options>}` - Sets the URL to stream data to. The generated HLS or DASH chunk filenames are appended to this. Send this before sending any `stream-data`. Default method is POST but you can change this using the request options.
+    * Note: If the upload URL starts with `postMessage:` then instead of streaming to the network, the Worker will `postMessage` each chunk (see above).
   * `{type: "stream-data", name: "<filename>", data: "<data>"}` - Data (audio/video/muxed) to supply to FFmpeg. `filename` must match an argument passed to FFmpeg via a `-i` option (up to two files are supported). `data` is an `ArrayBuffer`.
   * `{type: "stream-end"}` - End all input streams (FFmpeg will exit after this).
 
