@@ -297,7 +297,6 @@ EMCC_COMMON_CORE_ARGS = \
 	--memory-init-file 0 \
 	-s WASM_ASYNC_COMPILATION=0 \
 	-s ASSERTIONS=0 \
-	-s EXIT_RUNTIME=1 \
 	-s TOTAL_MEMORY=67108864 \
 	--pre-js $(PRE_JS) \
 	-o $@
