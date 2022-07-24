@@ -2,7 +2,7 @@ diff --git a/fftools/cmdutils.c b/fftools/cmdutils.c
 index fe424b6a4c..c9a8a7cb29 100644
 --- a/fftools/cmdutils.c
 +++ b/fftools/cmdutils.c
-@@ -130,12 +130,14 @@ void register_exit(void (*cb)(int ret))
+@@ -90,12 +90,14 @@ void register_exit(void (*cb)(int ret))
      program_exit = cb;
  }
  

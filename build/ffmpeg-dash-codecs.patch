@@ -2,7 +2,7 @@ diff --git a/libavformat/dashenc.c b/libavformat/dashenc.c
 index 06bbf36c95..8ed9cd3a47 100644
 --- a/libavformat/dashenc.c
 +++ b/libavformat/dashenc.c
-@@ -375,83 +375,6 @@ static void set_codec_str(AVFormatContext *s, AVCodecParameters *par,
+@@ -365,83 +365,6 @@ static void set_codec_str(AVFormatContext *s, AVCodecParameters *par,
              }
              return;
          }
@@ -90,7 +90,7 @@ diff --git a/libavformat/Makefile b/libavformat/Makefile
 index c45caa3eed..d8d39d78bf 100644
 --- a/libavformat/Makefile
 +++ b/libavformat/Makefile
-@@ -153,7 +153,7 @@ OBJS-$(CONFIG_CONCAT_DEMUXER)            += concatdec.o
+@@ -164,7 +164,7 @@ OBJS-$(CONFIG_CONCAT_DEMUXER)            += concatdec.o
  OBJS-$(CONFIG_CRC_MUXER)                 += crcenc.o
  OBJS-$(CONFIG_DATA_DEMUXER)              += rawdec.o
  OBJS-$(CONFIG_DATA_MUXER)                += rawenc.o
