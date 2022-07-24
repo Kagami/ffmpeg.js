@@ -252,7 +252,7 @@ build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-async-io.patch && \
 	patch -p1 < ../ffmpeg-hls-configure.patch && \
-	patch -p1 < ../ffmpeg-exit.patch && \
+	patch -p1 < ../ffmpeg-async-exit.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_HLS_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_CORE_ARGS) \
 		$(addprefix --enable-demuxer=,$(HLS_DEMUXERS)) \
@@ -275,7 +275,7 @@ build/ffmpeg-dash/ffmpeg.bc:
 	patch -p1 < ../ffmpeg-async-io.patch && \
 	patch -p1 < ../ffmpeg-dash-configure.patch && \
 	patch -p1 < ../ffmpeg-dash-codecs.patch && \
-	patch -p1 < ../ffmpeg-exit.patch && \
+	patch -p1 < ../ffmpeg-async-exit.patch && \
 	emconfigure ./configure \
 		$(FFMPEG_COMMON_CORE_ARGS) \
 		$(addprefix --enable-demuxer=,$(DASH_DEMUXERS)) \
@@ -335,7 +335,7 @@ ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm: $(FFMPEG_HLS_BC) $(PRE_JS) $(POST_J
 		--js-library $(LIBRARY_HLS_JS) \
 		-s WASM=1 \
 		-s ASYNCIFY \
-	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async"]'
+	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async", "emscripten_exit_async"]'
 
 ffmpeg-worker-dash.js ffmpeg-worker-dash.wasm: $(FFMPEG_DASH_BC) $(PRE_JS) $(POST_JS_WORKER) $(LIBRARY_DASH_JS)
 	emcc $(FFMPEG_DASH_BC) \
@@ -344,4 +344,4 @@ ffmpeg-worker-dash.js ffmpeg-worker-dash.wasm: $(FFMPEG_DASH_BC) $(PRE_JS) $(POS
 		--js-library $(LIBRARY_DASH_JS) \
 		-s WASM=1 \
 		-s ASYNCIFY \
-	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async"]'
+	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async", "emscripten_exit_async"]'

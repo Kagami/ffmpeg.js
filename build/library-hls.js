@@ -227,12 +227,24 @@ mergeInto(LibraryManager.library, {
                         method: 'POST',
                         body: upload_data
                     }, self.upload_options);
+                    self.pending_fetches = (self.pending_fetches || 0) + 1;
+                    function check_exit() {
+                        if ((--self.pending_fetches === 0) &&
+                            (self.pending_exit_code !== undefined)) {
+                            self.postMessage({
+                                type: 'ffexit',
+                                code: self.pending_exit_code
+                            });
+                        }
+                    }
                     fetch(stream.upload_url, options).then(response => {
+                        check_exit();
                         // note: with no-cors, response is opaque and ok will always be false
                         if (!response.ok && (options.mode !== 'no-cors')) {
                             console.error("RESPONSE NOT OK", stream.upload_url, response);
                         }
                     }).catch (err => {
+                        check_exit();
                         console.error("REQUEST ERROR", stream.upload_url, err);
                     });
                 }
@@ -240,11 +252,17 @@ mergeInto(LibraryManager.library, {
             wakeUp();
         });
     },
-    emscripten_exit: function (code) {
-        self.postMessage({
-            type: 'ffexit',
-            code
+    emscripten_exit_async: function (code) {
+        return Asyncify.handleSleep(wakeUp => {
+            if (self.pending_fetches > 0) {
+                console.log(`EXIT with ${self.pending_fetches} pending fetches`);
+                self.pending_exit_code = code;
+            } else {
+                self.postMessage({
+                    type: 'ffexit',
+                    code
+                });
+            }
         });
-        return code;
     }
 });

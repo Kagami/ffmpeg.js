@@ -6,7 +6,7 @@ index fe424b6a4c..c9a8a7cb29 100644
      program_exit = cb;
  }
  
-+int emscripten_exit(int code);
++int emscripten_exit_async(int code);
 +
  void exit_program(int ret)
  {
@@ -14,7 +14,7 @@ index fe424b6a4c..c9a8a7cb29 100644
          program_exit(ret);
  
 -    exit(ret);
-+    exit(emscripten_exit(ret));
++    exit(emscripten_exit_async(ret));
  }
  
  double parse_number_or_die(const char *context, const char *numstr, int type,
