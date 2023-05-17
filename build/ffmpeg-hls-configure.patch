@@ -1,8 +1,8 @@
 diff --git a/configure b/configure
-index d7a3f507e8..746f130a0a 100755
+index b6616f00b6..ce733aa2e7 100755
 --- a/configure
 +++ b/configure
-@@ -3451,7 +3451,7 @@ mp3_demuxer_select="mpegaudio_parser"
+@@ -3460,7 +3460,7 @@ mp3_demuxer_select="mpegaudio_parser"
  mp3_muxer_select="mpegaudioheader"
  mp4_muxer_select="mov_muxer"
  mpegts_demuxer_select="iso_media"

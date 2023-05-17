@@ -1,8 +1,8 @@
 diff --git a/libavformat/file.c b/libavformat/file.c
-index 8303436be0..4aa206859e 100644
+index cbdf48de0a..4e833978d1 100644
 --- a/libavformat/file.c
 +++ b/libavformat/file.c
-@@ -40,6 +40,9 @@
+@@ -41,6 +41,9 @@
  #include "os_support.h"
  #include "url.h"
  
@@ -12,7 +12,7 @@ index 8303436be0..4aa206859e 100644
  /* Some systems may not have S_ISFIFO */
  #ifndef S_ISFIFO
  #  ifdef S_IFIFO
-@@ -113,7 +116,11 @@ static int file_read(URLContext *h, unsigned char *buf, int size)
+@@ -140,7 +143,11 @@ static int file_read(URLContext *h, unsigned char *buf, int size)
      FileContext *c = h->priv_data;
      int ret;
      size = FFMIN(size, c->blocksize);
@@ -25,7 +25,7 @@ index 8303436be0..4aa206859e 100644
      if (ret == 0 && c->follow)
          return AVERROR(EAGAIN);
      if (ret == 0)
-@@ -264,7 +271,8 @@ static int64_t file_seek(URLContext *h, int64_t pos, int whence)
+@@ -218,6 +225,7 @@ static int fd_dup(URLContext *h, int oldfd)
  static int file_close(URLContext *h)
  {
      FileContext *c = h->priv_data;
@@ -33,4 +33,3 @@ index 8303436be0..4aa206859e 100644
      int ret = close(c->fd);
      return (ret == -1) ? AVERROR(errno) : 0;
  }
- 

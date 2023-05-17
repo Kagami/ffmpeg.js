@@ -1,8 +1,8 @@
 diff --git a/libavformat/dashenc.c b/libavformat/dashenc.c
-index 06bbf36c95..8ed9cd3a47 100644
+index 17fe5f430c..dbbd504ef4 100644
 --- a/libavformat/dashenc.c
 +++ b/libavformat/dashenc.c
-@@ -365,83 +365,6 @@ static void set_codec_str(AVFormatContext *s, AVCodecParameters *par,
+@@ -368,83 +368,6 @@ static void set_codec_str(AVFormatContext *s, AVCodecParameters *par,
              }
              return;
          }
@@ -87,10 +87,10 @@ index 06bbf36c95..8ed9cd3a47 100644
  
  static int flush_dynbuf(DASHContext *c, OutputStream *os, int *range_length)
 diff --git a/libavformat/Makefile b/libavformat/Makefile
-index c45caa3eed..d8d39d78bf 100644
+index 47bbbbfb2a..cafa1879bd 100644
 --- a/libavformat/Makefile
 +++ b/libavformat/Makefile
-@@ -164,7 +164,7 @@ OBJS-$(CONFIG_CONCAT_DEMUXER)            += concatdec.o
+@@ -167,7 +167,7 @@ OBJS-$(CONFIG_CONCAT_DEMUXER)            += concatdec.o
  OBJS-$(CONFIG_CRC_MUXER)                 += crcenc.o
  OBJS-$(CONFIG_DATA_DEMUXER)              += rawdec.o
  OBJS-$(CONFIG_DATA_MUXER)                += rawenc.o

@@ -1,8 +1,8 @@
 diff --git a/configure b/configure
-index 92610c7edc..d30a5284c0 100755
+index b6616f00b6..d102f263f6 100755
 --- a/configure
 +++ b/configure
-@@ -3412,7 +3412,6 @@ avi_demuxer_select="riffdec exif"
+@@ -3421,7 +3421,6 @@ avi_muxer_select="riffenc"
  avif_muxer_select="mov_muxer"
  caf_demuxer_select="iso_media"
  caf_muxer_select="iso_media"

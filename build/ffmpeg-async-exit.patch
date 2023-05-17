@@ -1,9 +1,9 @@
 diff --git a/fftools/cmdutils.c b/fftools/cmdutils.c
-index fe424b6a4c..c9a8a7cb29 100644
+index a1de621d1c..88bbf4cc79 100644
 --- a/fftools/cmdutils.c
 +++ b/fftools/cmdutils.c
-@@ -90,12 +90,14 @@ void register_exit(void (*cb)(int ret))
-     program_exit = cb;
+@@ -96,12 +96,14 @@ void report_and_exit(int ret)
+     exit_program(AVUNERROR(ret));
  }
  
 +int emscripten_exit_async(int code);
