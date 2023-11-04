@@ -1,131 +1,8 @@
 mergeInto(LibraryManager.library, {
     emscripten_read_async: function (fd, buf, size) {
         if (!self.stream_started) {
-            FS.mkdir('/outbound');
-            const check_access = {
-                get: function (target, name, receiver) {
-                    const r = Reflect.get(target, name, receiver);
-                    if (r === undefined) {
-                        console.warn('Accessed missing property:', name, target);
-                    }
-                    return r;
-                }
-            };
-            const files = new Set();
-            const ops = new Proxy({
-                mount: function (mount) {
-                    return ops.createNode(null, '/', ops.getMode('/'));
-                },
-                createNode: function (parent, name, mode, dev) {
-                    const node = FS.createNode(parent, name, mode, dev);
-                    node.node_ops = ops.node_ops;
-                    node.stream_ops = ops.stream_ops;
-                    node.usedBytes = 0;
-                    return node;
-                },
-                getMode: function (path) {
-                    return (path === '/' ? 0x40000 : 0x100000) | 0x777;
-                },
-                realPath: function (node) {
-                    const parts = [];
-                    while (node.parent !== node) {
-                        parts.push(node.name);
-                        node = node.parent;
-                    }
-                    parts.reverse();
-                    return PATH.join.apply(null, parts);
-                },
-                node_ops: new Proxy({
-                    getattr: function (node) {
-                        const attr = {};
-                        attr.dev = 1;
-                        attr.ino = node.id;
-                        attr.nlink = 1;
-                        attr.uid = 0;
-                        attr.gid = 0;
-                        attr.rdev = node.rdev;
-                        attr.size = FS.isDir(node.mode) ? 4096 : node.usedBytes;
-                        attr.atime = new Date(node.timestamp);
-                        attr.mtime = new Date(node.timestamp);
-                        attr.ctime = new Date(node.timestamp);
-                        attr.blksize = 4096;
-                        attr.blocks = Math.ceil(attr.size / attr.blksize);
-                        return attr;
-                    },
-                    setattr: function (node, attr) {
-                    },
-                    lookup: function (parent, name) {
-                        if (!files.has(name)) {
-                            throw FS.genericErrors[{{{ cDefine('ENOENT') }}}];
-                        }
-                        const path = PATH.join2(ops.realPath(parent), name);
-                        const mode = ops.getMode(path);
-                        return ops.createNode(parent, name, mode);
-                    },
-                    mknod: function (parent, name, mode, dev) {
-                        files.add(name);
-                        return ops.createNode(parent, name, mode, dev);
-                    },
-                    rename: function (old_node, new_dir, new_name) {
-                        files.delete(old_node.name);
-                        old_node.parent.timestamp = Date.now();
-                        old_node.name = new_name;
-                    },
-                    unlink: function (parent, name) {
-                        files.delete(name);
-                    }
-                }, check_access),
-                stream_ops: new Proxy({
-                    open: function (stream) {
-                        stream.upload_url = self.upload_url(stream.node.name);
-                        stream.upload_data = [];
-                    },
-                    llseek: function (stream, offset, whence) {
-                        let position = offset;
-                        if (whence === {{{ cDefine('SEEK_CUR') }}}) {
-                            position += stream.position;
-                        } else if (whence === {{{ cDefine('SEEK_END') }}}) {
-                            if (FS.isFile(stream.node.mode)) {
-                                position += stream.node.usedBytes;
-                            }
-                        }
-                        if (position < 0) {
-                            throw new FS.ErrnoError({{{ cDefine('EINVAL') }}});
-                        }
-                        return position;
-                    },
-                    write: function (stream, buffer, offset, length, position, canOwn) {
-                        if (!length) {
-                            return 0;
-                        }
-                        const node = stream.node;
-                        node.timestamp = Date.now();
-                        node.usedBytes = Math.max(node.usedBytes, position + length);
-                        if (stream.upload_url) {
-                            if (!self.stream_sending) {
-                                self.stream_sending = true;
-                                self.postMessage({type: 'sending'});
-                            }
-#if ALLOW_MEMORY_GROWTH
-                            if (buffer.buffer === HEAP8.buffer) {
-                                canOwn = false;
-                            }
-#endif
-                            if (canOwn) {
-                                stream.upload_data.push(buffer.subarray(offset, offset + length));
-                            } else {
-                                stream.upload_data.push(buffer.slice(offset, offset + length));
-                            }
-                        }
-                        return length;
-                    },
-                    close: function (stream) {
-                        files.delete(stream.node.name);
-                    }
-                }, check_access)
-            }, check_access);
-            FS.mount(ops, {}, '/outbound');
             const onmessage = self.onmessage;
+            self.stream_is_main = true;
             self.stream_ended = false;
             self.stream_sending = false;
             self.stream_queues = new Map();
@@ -155,13 +32,20 @@ mergeInto(LibraryManager.library, {
                     self.stream_handlers.delete(name);
                     self.stream_bufs.delete(name);
                     self.stream_sizes.delete(name);
-                    handler(processed);
+                    setTimeout(() => {
+                        try {
+                            handler(processed);
+                        } catch (ex) {
+                            console.error(ex);
+                        }
+                    }, 0);
                 }
             };
             self.onmessage = function (e) {
                 const msg = e['data'];
                 switch (msg['type']) {
                     case 'stream-data':
+                        self.stream_is_main = msg['is_main'];
                         if (!self.stream_queues.has(msg['name'])) {
                             self.stream_queues.set(msg['name'], []);
                         }
@@ -170,19 +54,6 @@ mergeInto(LibraryManager.library, {
                             self.stream_process(msg['name']);
                         }
                         break;
-                    case 'base-url': {
-                        self.upload_url = function (name) {
-                            if (name.endsWith('.webm') ||
-                                name.endsWith('.m4s') ||
-                                name.endsWith('.ts') ||
-                                name.endsWith('.tmp')) {
-                                return msg['data'] + name.replace(/\.tmp$/, '').replace(/\.m4s$/, '.mp4');
-                            }
-                            return null;
-                        };
-                        self.upload_options = msg['options'];
-                        break;
-                    }
                     case 'stream-end':
                         self.stream_ended = true;
                         for (let h of self.stream_handlers.keys()) {
@@ -194,62 +65,33 @@ mergeInto(LibraryManager.library, {
                         break;
                 }
             };
-            self.postMessage({type: 'start-stream'});
+            self.postMessage({'type': 'start-stream'});
             self.stream_started = true;
         }
         return Asyncify.handleSleep(wakeUp => {
             if (size <= 0) {
-                return wakeUp(0);
+                return setTimeout(() => {
+                    try {
+                        wakeUp(0);
+                    } catch (ex) {
+                        console.error(ex);
+                    }
+                }, 0);
             }
-            const name = FS.streams[fd].node.name;
+            const stream = FS.streams[fd];
+            let name;
+            if (stream) {
+                name = stream.node.name;
+            } else {
+                name = `/${fd}`;
+                if (self.stream_is_main && !self.stream_ended) {
+                    self.postMessage({'type': 'read', 'fd': fd, 'size': size});
+                }
+            }
             self.stream_handlers.set(name, wakeUp);
             self.stream_bufs.set(name, buf);
             self.stream_sizes.set(name, size);
             self.stream_process(name);
-        });
-    },
-    emscripten_close_async: function (fd) {
-        return Asyncify.handleSleep(wakeUp => {
-            const stream = FS.streams[fd];
-            if (stream && stream.upload_url) {
-                console.log("MAKING REQUEST TO", stream.upload_url);
-                const upload_data = new Blob(stream.upload_data);
-                if (stream.upload_url.startsWith('postMessage:')) {
-                    const upload_stream = upload_data.stream();
-                    self.postMessage(Object.assign({
-                        type: 'upload',
-                        url: stream.upload_url,
-                        stream: upload_stream
-                    }, self.upload_options), [upload_stream]);
-                } else {
-                    const options = Object.assign({
-                        mode: 'no-cors',
-                        method: 'POST',
-                        body: upload_data
-                    }, self.upload_options);
-                    self.pending_fetches = (self.pending_fetches || 0) + 1;
-                    function check_exit() {
-                        if ((--self.pending_fetches === 0) &&
-                            (self.pending_exit_code !== undefined)) {
-                            self.postMessage({
-                                type: 'ffexit',
-                                code: self.pending_exit_code
-                            });
-                        }
-                    }
-                    fetch(stream.upload_url, options).then(response => {
-                        check_exit();
-                        // note: with no-cors, response is opaque and ok will always be false
-                        if (!response.ok && (options.mode !== 'no-cors')) {
-                            console.error("RESPONSE NOT OK", stream.upload_url, response);
-                        }
-                    }).catch (err => {
-                        check_exit();
-                        console.error("REQUEST ERROR", stream.upload_url, err);
-                    });
-                }
-            }
-            wakeUp();
         });
     },
     emscripten_exit_async: function (code) {
@@ -259,8 +101,8 @@ mergeInto(LibraryManager.library, {
                 self.pending_exit_code = code;
             } else {
                 self.postMessage({
-                    type: 'ffexit',
-                    code
+                    'type': 'ffexit',
+                    'code': code
                 });
             }
         });

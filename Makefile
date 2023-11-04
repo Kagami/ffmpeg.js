@@ -192,6 +192,7 @@ FFMPEG_COMMON_CORE_ARGS = \
 	--disable-safe-bitstream-reader \
 	\
 	--disable-all \
+	--enable-pthreads \
 	--enable-ffmpeg \
 	--enable-avcodec \
 	--enable-avformat \
@@ -252,6 +253,7 @@ build/ffmpeg-hls/ffmpeg.bc: $(HLS_SHARED_DEPS)
 	patch -p1 < ../ffmpeg-async-io.patch && \
 	patch -p1 < ../ffmpeg-hls-configure.patch && \
 	patch -p1 < ../ffmpeg-async-exit.patch && \
+	patch -p1 < ../ffmpeg-pthread-exit.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_HLS_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_CORE_ARGS) \
 		$(addprefix --enable-demuxer=,$(HLS_DEMUXERS)) \
@@ -275,6 +277,7 @@ build/ffmpeg-dash/ffmpeg.bc:
 	patch -p1 < ../ffmpeg-dash-configure.patch && \
 	patch -p1 < ../ffmpeg-dash-codecs.patch && \
 	patch -p1 < ../ffmpeg-async-exit.patch && \
+	patch -p1 < ../ffmpeg-pthread-exit.patch && \
 	emconfigure ./configure \
 		$(FFMPEG_COMMON_CORE_ARGS) \
 		$(addprefix --enable-demuxer=,$(DASH_DEMUXERS)) \
@@ -296,7 +299,11 @@ EMCC_COMMON_CORE_ARGS = \
 	--memory-init-file 0 \
 	-s WASM_ASYNC_COMPILATION=0 \
 	-s ASSERTIONS=0 \
-	-s TOTAL_MEMORY=67108864 \
+	-s TOTAL_MEMORY=100MB \
+	-s STACK_SIZE=5MB \
+	-s DEFAULT_PTHREAD_STACK_SIZE=5MB \
+	-s PTHREAD_POOL_SIZE=10 \
+	-s ASYNCIFY_STACK_SIZE=65536 \
 	--pre-js $(PRE_JS) \
 	-o $@
 
@@ -331,7 +338,9 @@ ffmpeg-worker-hls.js ffmpeg-worker-hls.wasm: $(FFMPEG_HLS_BC) $(PRE_JS) $(POST_J
 	emcc $(FFMPEG_HLS_BC) $(HLS_SHARED_DEPS) \
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_CORE_ARGS) \
+		-pthread \
 		--js-library $(LIBRARY_HLS_JS) \
+		-s PROXY_TO_PTHREAD \
 		-s WASM=1 \
 		-s ASYNCIFY \
 	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async", "emscripten_exit_async"]'
@@ -340,7 +349,9 @@ ffmpeg-worker-dash.js ffmpeg-worker-dash.wasm: $(FFMPEG_DASH_BC) $(PRE_JS) $(POS
 	emcc $(FFMPEG_DASH_BC) \
 		--post-js $(POST_JS_WORKER) \
 		$(EMCC_COMMON_CORE_ARGS) \
+		-pthread \
 		--js-library $(LIBRARY_DASH_JS) \
+		-s PROXY_TO_PTHREAD \
 		-s WASM=1 \
 		-s ASYNCIFY \
 	        -s 'ASYNCIFY_IMPORTS=["emscripten_read_async", "emscripten_close_async", "emscripten_exit_async"]'
