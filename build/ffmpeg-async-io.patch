@@ -1,0 +1,26 @@
+diff --git a/libavformat/file.c b/libavformat/file.c
+index cbdf48de0a..1e53e7f647 100644
+--- a/libavformat/file.c
++++ b/libavformat/file.c
+@@ -41,6 +41,8 @@
+ #include "os_support.h"
+ #include "url.h"
+ 
++extern int emscripten_read_async(int fd, unsigned char* buf, int size);
++
+ /* Some systems may not have S_ISFIFO */
+ #ifndef S_ISFIFO
+ #  ifdef S_IFIFO
+@@ -140,7 +142,11 @@ static int file_read(URLContext *h, unsigned char *buf, int size)
+     FileContext *c = h->priv_data;
+     int ret;
+     size = FFMIN(size, c->blocksize);
+-    ret = read(c->fd, buf, size);
++    if ((c->fd == 3) || (c->fd == 4)) {
++        ret = emscripten_read_async(c->fd, buf, size);
++    } else {
++        ret = read(c->fd, buf, size);
++    }
+     if (ret == 0 && c->follow)
+         return AVERROR(EAGAIN);
+     if (ret == 0)

@@ -1,0 +1,101 @@
+diff --git a/libavformat/dashenc.c b/libavformat/dashenc.c
+index 17fe5f430c..dbbd504ef4 100644
+--- a/libavformat/dashenc.c
++++ b/libavformat/dashenc.c
+@@ -368,83 +368,6 @@ static void set_codec_str(AVFormatContext *s, AVCodecParameters *par,
+             }
+             return;
+         }
+-
+-    // for codecs part of RFC 6381
+-    if (par->codec_type == AVMEDIA_TYPE_VIDEO)
+-        tags[0] = ff_codec_movvideo_tags;
+-    else if (par->codec_type == AVMEDIA_TYPE_AUDIO)
+-        tags[0] = ff_codec_movaudio_tags;
+-    else
+-        return;
+-
+-    tag = par->codec_tag;
+-    if (!tag)
+-        tag = av_codec_get_tag(tags, par->codec_id);
+-    if (!tag)
+-        return;
+-    if (size < 5)
+-        return;
+-
+-    AV_WL32(str, tag);
+-    str[4] = '\0';
+-    if (!strcmp(str, "mp4a") || !strcmp(str, "mp4v")) {
+-        uint32_t oti;
+-        tags[0] = ff_mp4_obj_type;
+-        oti = av_codec_get_tag(tags, par->codec_id);
+-        if (oti)
+-            av_strlcatf(str, size, ".%02"PRIx32, oti);
+-        else
+-            return;
+-
+-        if (tag == MKTAG('m', 'p', '4', 'a')) {
+-            if (par->extradata_size >= 2) {
+-                int aot = par->extradata[0] >> 3;
+-                if (aot == 31)
+-                    aot = ((AV_RB16(par->extradata) >> 5) & 0x3f) + 32;
+-                av_strlcatf(str, size, ".%d", aot);
+-            }
+-        } else if (tag == MKTAG('m', 'p', '4', 'v')) {
+-            // Unimplemented, should output ProfileLevelIndication as a decimal number
+-            av_log(s, AV_LOG_WARNING, "Incomplete RFC 6381 codec string for mp4v\n");
+-        }
+-    } else if (!strcmp(str, "avc1")) {
+-        uint8_t *tmpbuf = NULL;
+-        uint8_t *extradata = par->extradata;
+-        int extradata_size = par->extradata_size;
+-        if (!extradata_size)
+-            return;
+-        if (extradata[0] != 1) {
+-            AVIOContext *pb;
+-            if (avio_open_dyn_buf(&pb) < 0)
+-                return;
+-            if (ff_isom_write_avcc(pb, extradata, extradata_size) < 0) {
+-                ffio_free_dyn_buf(&pb);
+-                return;
+-            }
+-            extradata_size = avio_close_dyn_buf(pb, &extradata);
+-            tmpbuf = extradata;
+-        }
+-
+-        if (extradata_size >= 4)
+-            av_strlcatf(str, size, ".%02x%02x%02x",
+-                        extradata[1], extradata[2], extradata[3]);
+-        av_free(tmpbuf);
+-    } else if (!strcmp(str, "av01")) {
+-        AV1SequenceParameters seq;
+-        if (!par->extradata_size)
+-            return;
+-        if (ff_av1_parse_seq_header(&seq, par->extradata, par->extradata_size) < 0)
+-            return;
+-
+-        av_strlcatf(str, size, ".%01u.%02u%s.%02u",
+-                    seq.profile, seq.level, seq.tier ? "H" : "M", seq.bitdepth);
+-        if (seq.color_description_present_flag)
+-            av_strlcatf(str, size, ".%01u.%01u%01u%01u.%02u.%02u.%02u.%01u",
+-                        seq.monochrome,
+-                        seq.chroma_subsampling_x, seq.chroma_subsampling_y, seq.chroma_sample_position,
+-                        seq.color_primaries, seq.transfer_characteristics, seq.matrix_coefficients,
+-                        seq.color_range);
+-    }
+ }
+ 
+ static int flush_dynbuf(DASHContext *c, OutputStream *os, int *range_length)
+diff --git a/libavformat/Makefile b/libavformat/Makefile
+index 47bbbbfb2a..cafa1879bd 100644
+--- a/libavformat/Makefile
++++ b/libavformat/Makefile
+@@ -167,7 +167,7 @@ OBJS-$(CONFIG_CONCAT_DEMUXER)            += concatdec.o
+ OBJS-$(CONFIG_CRC_MUXER)                 += crcenc.o
+ OBJS-$(CONFIG_DATA_DEMUXER)              += rawdec.o
+ OBJS-$(CONFIG_DATA_MUXER)                += rawenc.o
+-OBJS-$(CONFIG_DASH_MUXER)                += dash.o dashenc.o hlsplaylist.o
++OBJS-$(CONFIG_DASH_MUXER)                += dash.o dashenc.o hlsplaylist.o vpcc.o
+ OBJS-$(CONFIG_DASH_DEMUXER)              += dash.o dashdec.o
+ OBJS-$(CONFIG_DAUD_DEMUXER)              += dauddec.o
+ OBJS-$(CONFIG_DAUD_MUXER)                += daudenc.o

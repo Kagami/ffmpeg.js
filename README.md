@@ -11,6 +11,8 @@ Currently available builds (additional builds may be added in future):
 * `ffmpeg-worker-webm.js` - Web Worker version of `ffmpeg-webm.js`.
 * `ffmpeg-mp4.js` - MP4 encoding (H.264 & AAC & MP3 encoders, popular decoders).
 * `ffmpeg-worker-mp4.js` - Web Worker version of `ffmpeg-mp4.js`.
+* `ffmpeg-worker-hls.js` - HLS (HTTP Live Streaming) in a Web Worker. Data is MPEG2-TS encoded and POSTed via HTTP. Note this uses Web Assembly.
+* `ffmpeg-worker-dash.js` - DASH (Dynamic Adaptive Streaming over HTTP) in a Web Worker. Data is POSTed via HTTP. Note this uses Web Assembly.
 
 Note: only NPM releases contain abovementioned files.
 
@@ -61,9 +63,67 @@ ffmpeg.js also provides wrapper for main function with Web Worker interface to o
 * `{type: "done", data: "<result>"}` - Job finished with some result.
 * `{type: "error", data: "<error description>"}` - Error occurred.
 * `{type: "abort", data: "<abort reason>"}` - FFmpeg terminated abnormally (e.g. out of memory, wasm error).
+* For HLS and DASH:
+  * `{type: "start-stream"} - FFmpeg is ready to stream data (application should start posting `stream-data` messages).
+  * `{type: "sending"} - Sent once when data starts to be POSTed.
+  * `{type: "ffexit", code: "<code>"}` - FFmpeg exited with status code.
+  * `{type: "upload", stream: "<chunk as ReadableStream>", url: "<chunk filename>"}` - Only if upload URL starts with `postMessage:` (see below).
 
 You can send the following messages to the worker:
 * `{type: "run", ...opts}` - Start new job with provided options.
+  * For HLS, you should typically send something based on this:
+    ```js
+    type: 'run',
+    arguments: [
+        '-seekable', '0',
+        '-loglevel', 'info',
+        '-i', '/work/stream1',
+        '-map', '0:v',
+        '-map', '0:a',
+        '-c:v', 'copy', // assumes video is already in desired encoding
+        '-c:a', 'copy', // assumes audio is already in desired encoding
+        '-f', 'hls', // use hls encoder
+        '-hls_time', '2', // 2 second HLS chunks
+        '-hls_segment_type', 'mpegts', // MPEG2-TS muxer
+        '-hls_list_size', '2', // two chunks in the list at a time
+        '-hls_flags', 'split_by_time', // if you don't have < 2s keyframes
+        '/outbound/output.m3u8' // path to media playlist file in virtual FS,
+                                // must be under /outbound
+    ],
+    MEMFS: [
+        { name: 'stream1' },
+        { name: 'stream2' }
+    ]
+```
+  * For DASH, you should typically send something based on this:
+    ```js
+    type: 'run',
+    arguments: [
+        '-seekable', '0',
+        '-loglevel', 'info',
+        '-i', '/work/stream1',
+        '-map', '0:v',
+        '-map', '0:a',
+        '-c:v', 'copy', // assumes video is already in desired encoding
+        '-c:a', 'copy', // assumes audio is already in desired encoding
+        '-f', 'dash', // use dash encoder
+        '-seg_duration', '2', // 2 second segments
+        '-window_size', '2', // two chunks in the list at a time
+        '-streaming', '1', // fragment data
+        '-dash_segment_type', 'webm', // container type
+        '/outbound/output.mpd' // path to manifest file in virtual FS,
+                               // must be under /outbound
+    ],
+    MEMFS: [
+        { name: 'stream1' },
+        { name: 'stream2' }
+    ]
+```
+* For HLS and DASH:
+  * `{type: "base-url", data: "<upload-url>", protocol: "hls|dash", options: "<fetch request options>}` - Sets the URL to stream data to. The generated HLS or DASH chunk filenames are appended to this. Send this before sending any `stream-data`. Default method is POST but you can change this using the request options.
+    * Note: If the upload URL starts with `postMessage:` then instead of streaming to the network, the Worker will `postMessage` each chunk (see above).
+  * `{type: "stream-data", name: "<filename>", data: "<data>"}` - Data (audio/video/muxed) to supply to FFmpeg. `filename` must match an argument passed to FFmpeg via a `-i` option (up to two files are supported). `data` is an `ArrayBuffer`.
+  * `{type: "stream-end"}` - End all input streams (FFmpeg will exit after this).
 
 ```js
 const worker = new Worker("ffmpeg-worker-webm.js");
@@ -141,7 +201,7 @@ It's recommended to use [Docker](https://www.docker.com/) to build ffmpeg.js.
 3.  Build everything:
     ```bash
     docker run --rm -it -v /path/to/ffmpeg.js:/mnt -w /opt kagamihi/ffmpeg.js
-    # cp -a /mnt/{.git,build,Makefile} . && source /root/emsdk/emsdk_env.sh && make && cp ffmpeg*.js /mnt
+    # cp -a /mnt/{.git,build,Makefile} . && source /root/emsdk/emsdk_env.sh && make && cp ffmpeg*.{js,wasm} /mnt
     ```
 
 That's it. ffmpeg.js modules should appear in your repository clone.
@@ -152,7 +212,7 @@ Ubuntu example:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git python build-essential automake libtool pkg-config
+sudo apt-get install -y git python3 build-essential automake libtool pkg-config
 
 cd ~
 git clone https://github.com/emscripten-core/emsdk.git && cd emsdk
@@ -173,9 +233,9 @@ Thanks to [videoconverter.js](https://bgrins.github.io/videoconverter.js/) for i
 
 Own library code licensed under LGPL 2.1 or later.
 
-### WebM build
+### WebM, HLS and DASH builds
 
-This build uses LGPL version of FFmpeg and thus available under LGPL 2.1 or later. See [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
+These builds use the LGPL version of FFmpeg and are thus available under LGPL 2.1 or later. See [here](https://www.ffmpeg.org/legal.html) for more details and FFmpeg's license information.
 
 Included libraries:
 * libopus [licensed under BSD](https://git.xiph.org/?p=opus.git;a=blob;f=COPYING).
@@ -185,7 +245,7 @@ See [LICENSE.WEBM](https://github.com/Kagami/ffmpeg.js/blob/master/LICENSE.WEBM)
 
 ### MP4 build
 
-This build uses GPL version of FFmpeg and thus available under GPL 2.0. It also includes patent encumbered H.264, AAC and MP3 encoders. Make sure to contact lawyer before using it in your country.
+This build uses GPL version of FFmpeg and is thus available under GPL 2.0. It also includes patent encumbered H.264, AAC and MP3 encoders. Make sure to contact a lawyer before using it in your country.
 
 Included libraries:
 * x264 [licensed under GPL](https://git.videolan.org/?p=x264.git;a=blob;f=COPYING).

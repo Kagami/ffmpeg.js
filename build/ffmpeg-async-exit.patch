@@ -1,0 +1,20 @@
+diff --git a/fftools/cmdutils.c b/fftools/cmdutils.c
+index a1de621d1c..88bbf4cc79 100644
+--- a/fftools/cmdutils.c
++++ b/fftools/cmdutils.c
+@@ -96,12 +96,14 @@ void report_and_exit(int ret)
+     exit_program(AVUNERROR(ret));
+ }
+ 
++int emscripten_exit_async(int code);
++
+ void exit_program(int ret)
+ {
+     if (program_exit)
+         program_exit(ret);
+ 
+-    exit(ret);
++    exit(emscripten_exit_async(ret));
+ }
+ 
+ double parse_number_or_die(const char *context, const char *numstr, int type,

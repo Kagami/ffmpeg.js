@@ -1,0 +1,12 @@
+diff --git a/configure b/configure
+index b6616f00b6..d102f263f6 100755
+--- a/configure
++++ b/configure
+@@ -3421,7 +3421,6 @@ avi_muxer_select="riffenc"
+ avif_muxer_select="mov_muxer"
+ caf_demuxer_select="iso_media"
+ caf_muxer_select="iso_media"
+-dash_muxer_select="mp4_muxer"
+ dash_demuxer_deps="libxml2"
+ dirac_demuxer_select="dirac_parser"
+ dts_demuxer_select="dca_parser"
